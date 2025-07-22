@@ -14,12 +14,12 @@ async function handleLogin() {
   const user = document.getElementById("username").value.trim().toLowerCase();
   const pass = document.getElementById("password").value.trim();
   const errorMsg = document.getElementById("errorMsg");
-
+  console.log("QUITAR BYPASS");
   // 1️⃣  Comprobación rápida: usuario/clave de prueba
   if (user === FALLBACK_USER && pass === FALLBACK_PASS) {
     console.warn("⚠️  Acceso habilitado por bypass temporal.");
     window.location.href = "app/app.html";
-    return;               // ⬅️  salimos antes de llamar al script
+    return;
   }
 
   try {
