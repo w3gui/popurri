@@ -5,10 +5,22 @@
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXXXXXXX/exec"; // <-- reemplazá con tu URL real
 
+/* --- ⚠️  Bypass temporal ----------------------------------------- */
+const FALLBACK_USER = "martin";   // usuario de prueba
+const FALLBACK_PASS = "admin";    // contraseña de prueba
+/* ------------------------------------------------------------------ */
+
 async function handleLogin() {
   const user = document.getElementById("username").value.trim().toLowerCase();
   const pass = document.getElementById("password").value.trim();
   const errorMsg = document.getElementById("errorMsg");
+
+  // 1️⃣  Comprobación rápida: usuario/clave de prueba
+  if (user === FALLBACK_USER && pass === FALLBACK_PASS) {
+    console.warn("⚠️  Acceso habilitado por bypass temporal.");
+    window.location.href = "app/app.html";
+    return;               // ⬅️  salimos antes de llamar al script
+  }
 
   try {
     console.log("Validando usuario:", user, "con contraseña:", pass);
