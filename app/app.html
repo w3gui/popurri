@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Numerología - Martín Noé</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .separador-gordo {
+      height: 8px;
+      background: #0d6efd; /* Azul Bootstrap */
+      border-radius: 5px;
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body class="bg-light p-3">
+
+  <div class="container bg-white shadow rounded p-4">
+    <h2 class="mb-4">Numerología Profunda</h2>
+
+    <!-- Datos personales -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label for="nombres" class="form-label">Nombres</label>
+        <input type="text" class="form-control" id="nombres">
+      </div>
+      <div class="col-md-4">
+        <label for="apellidos" class="form-label">Apellidos</label>
+        <input type="text" class="form-control" id="apellidos">
+      </div>
+      <div class="col-md-3">
+        <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+        <input type="date" class="form-control" id="fechaNacimiento">
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100" id="btnCalcular">Calcular</button>
+      </div>
+    </div>
+
+    <!-- SEPARADOR -->
+    <div class="separador-gordo"></div>
+    <!-- Resultados (1-3) -->
+    <div class="row mb-3">
+      <!-- Resultado 1: Esencia Íntima -->
+      <div class="col-md-4 d-flex align-items-center">
+        <label for="esenciaIntima" class="me-2 mb-0">1. Esencia Íntima</label>
+        <input type="text" class="form-control text-center" id="esenciaIntima" readonly style="width: 60px;">
+      </div>
+      <!-- Resultado 2: Imagen -->
+      <div class="col-md-4 d-flex align-items-center">
+        <label for="imagen" class="me-2 mb-0">2. Imagen</label>
+        <input type="text" class="form-control text-center" id="imagen" readonly style="width: 60px;">
+      </div>
+      <!-- Resultado 3: Sendero del Mundo -->
+      <div class="col-md-4 d-flex align-items-center">
+        <label for="serMundo" class="me-2 mb-0">3. Sendero del Mundo</label>
+        <input type="text" class="form-control text-center" id="serMundo" readonly style="width: 60px;">
+      </div>
+    </div>
+    <!-- Resultados (3-6) -->
+    <div class="row mb-3">
+      <!-- Resultado 4: Sendero Natal -->
+      <div class="col-md-4 d-flex align-items-center">
+        <label for="senderoNatal" class="me-2 mb-0">4. Sendero Natal</label>
+        <input type="text" class="form-control text-center" id="senderoNatal" readonly style="width: 60px;">
+      </div>
+      <!-- Resultado 5: Potencial -->
+      <div class="col-md-4 d-flex align-items-center">
+        <label for="potencial" class="me-2 mb-0">5. Potencial</label>
+        <input type="text" class="form-control text-center" id="potencial" readonly style="width: 60px;">
+      </div>
+      <!-- Resultado 6: Ciclo de Letras -->
+      <div class="col-md-4 d-flex align-items-center">
+        <label for="cicloLetras" class="me-2 mb-0">6. Ciclo de Letras</label>
+        <input type="text" class="form-control text-center" id="cicloLetras" readonly style="width: 60px;">
+      </div>
+    </div>
+    <!-- Resultados (7-9) -->
+    <div class="row mb-3">
+      <!-- Resultado 7: Clave Personal -->
+      <div class="col-md-4 d-flex align-items-center">
+        <label for="clavePersonal" class="me-2 mb-0">7. Clave Personal</label>
+        <input type="text" class="form-control text-center" id="clavePersonal" readonly style="width: 60px;">
+      </div>
+      <!-- Resultado 8: Letra L. -->
+      <div class="col-md-4 d-flex align-items-center">
+      </div>
+      <!-- Resultado 9: Regalo Divino -->
+      <div class="col-md-4 d-flex align-items-center">
+      </div>
+    </div>
+
+
+
+    <!-- Aquí seguirán las secciones 4 a 32 -->
+
+  </div>
+
+  <script src="js/numerologia.js"></script>
+</body>
+</html>
