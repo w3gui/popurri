@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const apellidos = document.getElementById("apellidos").value.trim().toUpperCase();
     const nombreCompleto = `${nombres} ${apellidos}`;
     
-    // === Clave Personal ===
+    // === Clave Personal === Tabla fija: Clave Personal por día y mes ===
     const tablaClavePersonal = {
       enero: {1: 9, 2: 8, 3: 2, 4: 9, 5: 10, 6: 2, 7: 3, 8: 4, 9: 5, 10: 6, 11: 7, 12: 8, 13: 9, 14: 8, 15: 9, 16: 10, 17: 11, 18: 3, 19: 4, 20: 2, 21: 3, 22: 4, 23: 5, 24: 13, 25: 5, 26: 6, 27: 4, 28: 5, 29: 6, 30: 7, 31: 8},
       febrero: {1: 10, 2: 8, 3: 9, 4: 10, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 7, 11: 8, 12: 7, 13: 8, 14: 9, 15: 10, 16: 11, 17: 3, 18: 4, 19: 2, 20: 3, 21: 4, 22: 1, 23: 4, 24: 5, 25: 12, 26: 4, 27: 5, 28: 6, 29: 7},
@@ -31,9 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
       S: 1, T: 2, U: 3, V: 4, W: 5, X: 6, Y: 7, Z: 8
     };
 
-    const vocalesSet = new Set(['A', 'E', 'I', 'O', 'U']); // Usado en todos los cálculos
+    const vocalesSet = new Set(['A', 'E', 'I', 'O', 'U']);
 
     // === Utilidad general ===
+    // Reduce un número a un solo dígito, respetando los números maestros 11, 22 y 33
     function reducirNumero(n) {
       if ([11, 22, 33].includes(n)) return n;
       let suma = n;
@@ -44,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return suma;
     }
 
+    // Calcula la suma numerológica de las vocales de una palabra
     function calcularParcialVocales(palabra) {
       let suma = 0;
       for (let letra of palabra) {
@@ -52,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return reducirNumero(suma);
     }
 
+    // Calcula la suma numerológica de las consonantes de una palabra
     function calcularParcialConsonantes(palabra) {
       let suma = 0;
       for (let letra of palabra) {
@@ -120,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (fechaNacimiento) {
       const [anio, mes, dia] = fechaNacimiento.split("-").map(num => parseInt(num));
 
-      // Reducción con control de números maestros
+      // Reduce valores de fecha (día, mes o año) con control de números maestros y trata el 29 como número maestro (11)
       function reducirFecha(valor) {
         if ([11, 22, 33].includes(valor)) return valor;
         if (valor === 29) return 11; // caso especial: 29 = 2+9 = 11 maestro
