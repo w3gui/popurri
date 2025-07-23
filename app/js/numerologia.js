@@ -130,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let senderoNatal = "";
     if (fechaNacimiento) {
       const [anio, mes, dia] = fechaNacimiento.split("-").map(num => parseInt(num));
+      const edadActual = new Date().getFullYear() - anio;
 
       // Reduce valores de fecha (día, mes o año) con control de números maestros y trata el 29 como número maestro (11)
       function reducirFecha(valor) {
@@ -197,6 +198,58 @@ document.addEventListener("DOMContentLoaded", () => {
       regaloDivino = reducirNumero(ultimosDos);
     }
     document.getElementById("regaloDivino").value = regaloDivino;
+
+    // === Resultado 10: Etapas ===
+    if (fechaNacimiento) {
+      const [anio, mes, dia] = fechaNacimiento.split("-").map(num => parseInt(num));
+
+      const rMes = reducirNumero(mes);
+      const rDia = reducirNumero(dia);
+      const rAnio = reducirNumero(anio.toString().split('').reduce((a, b) => a + parseInt(b), 0));
+
+      document.getElementById("etapa1_izq").textContent = rMes;
+      document.getElementById("etapa1_centro").textContent = rDia;
+      document.getElementById("etapa1_der").textContent = rAnio;
+
+      // Reducción especial: si es 11, 22 o 33, reducir antes
+      const safeReduce = (n) => {
+        return reducirNumero([11, 22, 33].includes(n) ? reducirNumero(n) : n);
+      };
+
+      const etapa2_izq = safeReduce(rMes + rDia);
+      const etapa2_der = safeReduce(rDia + rAnio);
+
+      document.getElementById("etapa2_izq").textContent = etapa2_izq;
+      document.getElementById("etapa2_der").textContent = etapa2_der;
+
+      const etapa3 = safeReduce(etapa2_izq + etapa2_der);
+      document.getElementById("etapa3").textContent = etapa3;
+
+      const etapa4 = safeReduce(rMes + rAnio);
+      document.getElementById("etapa4").textContent = etapa4;
+
+      // Texto de interpretación con edades base
+      const edadActual = new Date().getFullYear() - anio;
+      let edades;
+
+      // Leer duración desde el input
+      const duracionInput = document.getElementById("duracionEtapas");
+      const duracion = duracionInput && duracionInput.value ? parseInt(duracionInput.value) : null;
+
+      // Usa duración solo si está definida y válida
+      if (duracion) {
+        edades = [0, duracion, duracion * 2, duracion * 3];
+      } else {
+        edades = [0, 28, 38, 48];
+      }
+      const etapaText = [rMes, etapa2_izq, etapa3, etapa4];
+      etapaText.forEach((val, i) => {
+        const ini = edades[i];
+        const fin = i === 3 ? 'en adelante' : edades[i + 1] - 1;
+        document.getElementById(`etapaTexto${i + 1}`).textContent =
+          `De ${ini} a ${fin} - ${val}`;
+      });
+    }
     
     // === DEBUG ===
     console.log("Palabras:", palabras);
@@ -217,7 +270,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /*
-Resultado 1 -> Esencia Íntima        > Vocales por palabra → reducir → sumar dígitos
-Resultado 2 -> Imagen                > Consonantes por palabra → reducir → sumar dígitos
-Resultado 3 -> Sendero del Mundo     > (Vocales + Consonantes) por palabra → reducir → sumar dígitos
+Resultado 1 -> Esencia Íntima        > Vocales por palabra → reducir → sumar dígitos → reducir total
+Resultado 2 -> Imagen                > Consonantes por palabra → reducir → sumar dígitos → reducir total
+Resultado 3 -> Sendero del Mundo     > (Vocales + Consonantes) por palabra → reducir → sumar dígitos → reducir total
+Resultado 4 -> Sendero Natal         > Reducir mes, día y año → sumar → reducir total
+Resultado 5 -> Potencial             > Sendero Natal + Sendero del Mundo → reducir
+Resultado 6 -> Ciclo de Letras       > Total de letras del nombre completo (sin espacios ni símbolos)
+Resultado 7 -> Clave Personal        > Según tabla fija: mes + día
+Resultado 8 -> Letra L.              > Posición alfabética de la primera letra del primer nombre
+Resultado 9 -> Regalo Divino         > Suma de los dos últimos dígitos del año → reducir (salvo 11, 22 o 33)
+Resultado 10 -> Etapas               >
+    Etapa 1: Mes, Día y Año reducidos
+    Etapa 2: Etapa1_izq + Etapa1_centro y Etapa1_centro + Etapa1_der (reduciendo ambos antes)
+    Etapa 3: Suma de Etapa2 izquierda y derecha → reducir
+    Etapa 4: Etapa1_izq + Etapa1_der → reducir
 */
