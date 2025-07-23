@@ -1,6 +1,14 @@
 // numerologia.js
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Cambia el tema entre claro y oscuro
+  document.getElementById('toggleModo').addEventListener('click', () => {
+    const body = document.getElementById('body');
+    body.classList.toggle('dark-mode');
+
+    const icono = document.getElementById('toggleModo');
+    icono.textContent = body.classList.contains('dark-mode') ? '🌞' : '🌙';
+  });
   const btnCalcular = document.getElementById("btnCalcular");
 
   btnCalcular.addEventListener("click", () => {
@@ -174,7 +182,21 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.getElementById("clavePersonal").value = clavePersonal;
 
+    // === Resultado 8: Correlación Primera Letra ===
+    // Se toma la primera letra del primer nombre y se calcula su posición A=1 ... Z=26
+    const primeraLetra = nombres.charAt(0);
+    const correlacionLetra = primeraLetra >= 'A' && primeraLetra <= 'Z' ? primeraLetra.charCodeAt(0) - 64 : '';
+    document.getElementById("letraLeccion").value = correlacionLetra;
 
+    // === Resultado 9: Regalo Divino ===
+    // Se suman los dos últimos dígitos del año de nacimiento y se reduce a un dígito (salvo que dé 11, 22 o 33)
+    let regaloDivino = "";
+    if (fechaNacimiento) {
+      const anio = parseInt(fechaNacimiento.split("-")[0]);
+      const ultimosDos = anio % 100;
+      regaloDivino = reducirNumero(ultimosDos);
+    }
+    document.getElementById("regaloDivino").value = regaloDivino;
     
     // === DEBUG ===
     console.log("Palabras:", palabras);
@@ -189,6 +211,8 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Resultado 5 (Potencial):", potencial);
     console.log("Resultado 6 (Ciclo de Letras):", cicloLetras);
     console.log("Resultado 7 (Clave Personal):", clavePersonal);
+    console.log("Resultado 8 (Letra L):", correlacionLetra);
+    console.log("Resultado 9 (Regalo Divino):", regaloDivino);
   });
 });
 

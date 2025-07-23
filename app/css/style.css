@@ -1,0 +1,33 @@
+body.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .container {
+    background-color: #1e1e1e !important;
+}
+
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    border: 1px solid #444 !important;
+}
+
+.dark-mode label {
+    color: #e0e0e0 !important;
+}
+
+.separador-grueso {
+    height: 8px;
+    background: #0d6efd; /* Azul Bootstrap */
+    border-radius: 5px;
+    margin: 30px 0;
+}
+
+.modo-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
