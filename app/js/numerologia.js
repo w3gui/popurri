@@ -237,18 +237,36 @@ document.addEventListener("DOMContentLoaded", () => {
       const duracion = duracionInput && duracionInput.value ? parseInt(duracionInput.value) : null;
 
       // Usa duración solo si está definida y válida
-      if (duracion) {
+      if (duracion && !isNaN(duracion)) {
         edades = [0, duracion, duracion * 2, duracion * 3];
       } else {
-        edades = [0, 28, 38, 48];
+        // Si no hay duración, usar clavePersonal como base
+        const claveValor = parseInt(document.getElementById("clavePersonal").value);
+        if (!isNaN(claveValor)) {
+          const etapa1Fin = 36 - claveValor;
+          const etapa2Ini = etapa1Fin + 1;
+          const etapa2Fin = etapa2Ini + 9;
+          const etapa3Ini = etapa2Fin + 1;
+          const etapa3Fin = etapa3Ini + 9;
+          const etapa4Ini = etapa3Fin + 1;
+          edades = [0, etapa1Fin, etapa2Ini, etapa3Ini, etapa4Ini];
+        } else {
+          edades = [0, 36, 45, 54];
+        }
       }
+      
+      
       const etapaText = [rMes, etapa2_izq, etapa3, etapa4];
-      etapaText.forEach((val, i) => {
-        const ini = edades[i];
-        const fin = i === 3 ? 'en adelante' : edades[i + 1] - 1;
-        document.getElementById(`etapaTexto${i + 1}`).textContent =
-          `De ${ini} a ${fin} - ${val}`;
-      });
+      const textos = [
+        `De ${edades[0]} a ${edades[1]} - ${etapaText[0]}`,
+        `De ${edades[2]} a ${edades[3] - 1} - ${etapaText[1]}`,
+        `De ${edades[3]} a ${edades[4] - 1} - ${etapaText[2]}`,
+        `Desde ${edades[4]} en adelante - ${etapaText[3]}`
+      ];
+      document.getElementById("etapaTexto1").textContent = textos[0];
+      document.getElementById("etapaTexto2").textContent = textos[1];
+      document.getElementById("etapaTexto3").textContent = textos[2];
+      document.getElementById("etapaTexto4").textContent = textos[3];
     }
     
     // === DEBUG ===
