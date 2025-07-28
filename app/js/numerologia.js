@@ -269,21 +269,116 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("etapaTexto4").textContent = textos[3];
     }
     
+    // === Resultado 11: Ciclo de Vida ===
+    if (fechaNacimiento) {
+      const [anio, mes, dia] = fechaNacimiento.split("-").map(num => parseInt(num));
+      const hoy = new Date();
+      let edad = hoy.getFullYear() - anio;
+      if (
+        hoy.getMonth() + 1 < mes ||
+        (hoy.getMonth() + 1 === mes && hoy.getDate() < dia)
+      ) {
+        edad--; // Ajusta si no cumplió aún este año
+      }
+
+      const reducirCV = (valor) => {
+        if (valor === 11 || valor === 22) return valor;
+        return reducirNumero(valor);
+      };
+
+      let cicloVida = "";
+      if ((edad >= 0 && edad <= 27) || (edad >= 81 && edad <= 107)) {
+        cicloVida = mes === 11 ? 11 : reducirCV(mes);
+      } else if ((edad >= 28 && edad <= 54) || (edad >= 108 && edad <= 134)) {
+        cicloVida = reducirCV(dia);
+      } else if (edad >= 55 && edad <= 80) {
+        cicloVida = reducirCV(
+          anio.toString().split('').reduce((a, b) => a + parseInt(b), 0)
+        );
+      } else if (edad > 134) {
+        cicloVida = reducirCV(mes); // Continua el ciclo
+        document.getElementById("cicloVida").classList.add("text-danger");
+      }
+
+      document.getElementById("cicloVida").value = cicloVida;
+    }
+
+
+    // === Resultado 12: Karmas ===
+    const karmasPosibles = [13, 14, 16, 19];
+    let karmasEncontrados = new Set();
+
+    // Helper para revisar si un número tiene karma
+    function revisarKarma(valor) {
+      if (karmasPosibles.includes(valor)) karmasEncontrados.add(valor);
+    }
+
+    // Revisar Esencia Íntima
+    revisarKarma(sumaVocales);
+
+    // Revisar suma de todas las vocales de nombres+apellidos (usando 10 como 10)
+    const sumaVocalesRaw = palabras.reduce((total, p) => {
+      return total + [...p].reduce((suma, letra) => {
+        if (vocalesSet.has(letra)) return suma + (alfabeto[letra] || 0);
+        return suma;
+      }, 0);
+    }, 0);
+    revisarKarma(sumaVocalesRaw);
+
+    // Revisar Sendero del Mundo
+    revisarKarma(sumaFinalMundo);
+
+    // Revisar suma vertical de vocales+consonantes (parciales por palabra)
+    palabras.forEach(p => {
+      const totalVC = calcularParcialVocales(p) + calcularParcialConsonantes(p);
+      revisarKarma(totalVC);
+    });
+
+    // Revisar Sendero Natal y Potencial
+    revisarKarma(parseInt(senderoNatal) || 0);
+    revisarKarma(parseInt(potencial) || 0);
+
+    document.getElementById("karmas").value = [...karmasEncontrados].sort((a,b) => a-b).join(", ") || "—";
+
+
+    // === Resultado 13: Lecciones Kármicas ===
+    const conteo = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+
+    letrasSolo.split('').forEach(l => {
+      const valor = alfabeto[l];
+      if (valor) conteo[valor]++;
+    });
+
+    console.log("Conteo de números en el nombre:", conteo);
+
+    let lecciones = [];
+    for (let i = 1; i <= 9; i++) {
+      if (conteo[i] === 0) lecciones.push(i);
+    }
+
+    document.getElementById("leccionesKarmicas").value = lecciones.join(", ") || "—";
+
     // === DEBUG ===
     console.log("Palabras:", palabras);
     console.log("Parciales Vocales:", parcialesVocales);
     console.log("Parciales Consonantes:", parcialesConsonantes);
     console.log("Parciales Totales por palabra (V+C):", parcialesMundo);
-    
-    console.log("Resultado 1 (Esencia Íntima):", esenciaIntima);
-    console.log("Resultado 2 (Imagen):", imagen);
-    console.log("Resultado 3 (Sendero del Mundo):", senderoMundo);
+
+    console.log("Resultado 1 (Esencia Íntima):", esenciaIntima, "| Suma vocales:", sumaVocales);
+    console.log("Resultado 2 (Imagen):", imagen, "| Suma consonantes:", sumaConsonantes);
+    console.log("Resultado 3 (Sendero del Mundo):", senderoMundo, "| Suma total palabras (V+C):", sumaFinalMundo);
     console.log("Resultado 4 (Sendero Natal):", senderoNatal);
     console.log("Resultado 5 (Potencial):", potencial);
     console.log("Resultado 6 (Ciclo de Letras):", cicloLetras);
     console.log("Resultado 7 (Clave Personal):", clavePersonal);
     console.log("Resultado 8 (Letra L):", correlacionLetra);
     console.log("Resultado 9 (Regalo Divino):", regaloDivino);
+    console.log("Resultado 10 (Etapas): edades =", edades);
+
+    console.log("Resultado 11 (Ciclo de Vida):", document.getElementById("cicloVida").value);
+    console.log("Resultado 12 (Karmas encontrados):", document.getElementById("karmas").value);
+    console.log("Resultado 13 (Lecciones Kármicas):", document.getElementById("leccionesKarmicas").value);
+    console.log("Cantidad de números (1 al 9):", conteo);
   });
 });
 
@@ -302,4 +397,7 @@ Resultado 10 -> Etapas               >
     Etapa 2: Etapa1_izq + Etapa1_centro y Etapa1_centro + Etapa1_der (reduciendo ambos antes)
     Etapa 3: Suma de Etapa2 izquierda y derecha → reducir
     Etapa 4: Etapa1_izq + Etapa1_der → reducir
+Resultado 11 -> Ciclo de Vida        > Según edad: usa mes, día o año reducido según rango de edad
+Resultado 12 -> Karmas               > Detecta 13, 14, 16 o 19 en: esencia, nombres, sendero, verticales y potencial
+Resultado 13 -> Lecciones Kármicas   > Números del 1 al 9 que no aparecen en el nombre completo
 */
