@@ -200,73 +200,57 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("regaloDivino").value = regaloDivino;
 
     // === Resultado 10: Etapas ===
-    if (fechaNacimiento) {
+        if (fechaNacimiento) {
       const [anio, mes, dia] = fechaNacimiento.split("-").map(num => parseInt(num));
 
       const rMes = reducirNumero(mes);
       const rDia = reducirNumero(dia);
       const rAnio = reducirNumero(anio.toString().split('').reduce((a, b) => a + parseInt(b), 0));
 
+      // Mostrar los valores base (izq, centro, der)
       document.getElementById("etapa1_izq").textContent = rMes;
       document.getElementById("etapa1_centro").textContent = rDia;
       document.getElementById("etapa1_der").textContent = rAnio;
 
-      // Reducción especial: si es 11, 22 o 33, reducir antes
-      const safeReduce = (n) => {
-        return reducirNumero([11, 22, 33].includes(n) ? reducirNumero(n) : n);
-      };
+      // Etapa 1: mes + día
+      const etapa1 = ([11, 22, 33].includes(rMes + rDia)) ? (rMes + rDia) : reducirNumero(rMes + rDia);
 
-      const etapa2_izq = safeReduce(rMes + rDia);
-      const etapa2_der = safeReduce(rDia + rAnio);
+      // Etapa 2: día + año
+      const etapa2 = ([11, 22, 33].includes(rDia + rAnio)) ? (rDia + rAnio) : reducirNumero(rDia + rAnio);
 
-      document.getElementById("etapa2_izq").textContent = etapa2_izq;
-      document.getElementById("etapa2_der").textContent = etapa2_der;
+      // Etapa 3: etapa1 + etapa2
+      const etapa3 = ([11, 22, 33].includes(etapa1 + etapa2)) ? (etapa1 + etapa2) : reducirNumero(etapa1 + etapa2);
 
-      const etapa3 = safeReduce(etapa2_izq + etapa2_der);
+      // Etapa 4: mes + año
+      const etapa4 = ([11, 22, 33].includes(rMes + rAnio)) ? (rMes + rAnio) : reducirNumero(rMes + rAnio);
+
+      // Mostrar en los spans
+      document.getElementById("etapa2_izq").textContent = etapa1;
+      document.getElementById("etapa2_der").textContent = etapa2;
       document.getElementById("etapa3").textContent = etapa3;
-
-      const etapa4 = safeReduce(rMes + rAnio);
       document.getElementById("etapa4").textContent = etapa4;
 
-      // Texto de interpretación con edades base
-      const edadActual = new Date().getFullYear() - anio;
+      // Texto de interpretación (edades)
+      const claveValor = parseInt(document.getElementById("clavePersonal").value);
       let edades;
 
-      // Leer duración desde el input
-      const duracionInput = document.getElementById("duracionEtapas");
-      const duracion = duracionInput && duracionInput.value ? parseInt(duracionInput.value) : null;
-
-      // Usa duración solo si está definida y válida
-      if (duracion && !isNaN(duracion)) {
-        edades = [0, duracion, duracion * 2, duracion * 3];
+      if (!isNaN(claveValor)) {
+        const etapa1Fin = 36 - claveValor;
+        const etapa2Ini = etapa1Fin + 1;
+        const etapa2Fin = etapa2Ini + 9;
+        const etapa3Ini = etapa2Fin + 1;
+        const etapa3Fin = etapa3Ini + 9;
+        const etapa4Ini = etapa3Fin + 1;
+        edades = [0, etapa1Fin, etapa2Ini, etapa3Ini, etapa4Ini];
       } else {
-        // Si no hay duración, usar clavePersonal como base
-        const claveValor = parseInt(document.getElementById("clavePersonal").value);
-        if (!isNaN(claveValor)) {
-          const etapa1Fin = 36 - claveValor;
-          const etapa2Ini = etapa1Fin + 1;
-          const etapa2Fin = etapa2Ini + 9;
-          const etapa3Ini = etapa2Fin + 1;
-          const etapa3Fin = etapa3Ini + 9;
-          const etapa4Ini = etapa3Fin + 1;
-          edades = [0, etapa1Fin, etapa2Ini, etapa3Ini, etapa4Ini];
-        } else {
-          edades = [0, 36, 45, 54];
-        }
+        edades = [0, 36, 45, 54];
       }
-      
-      
-      const etapaText = [rMes, etapa2_izq, etapa3, etapa4];
-      const textos = [
-        `De ${edades[0]} a ${edades[1]} - ${etapaText[0]}`,
-        `De ${edades[2]} a ${edades[3] - 1} - ${etapaText[1]}`,
-        `De ${edades[3]} a ${edades[4] - 1} - ${etapaText[2]}`,
-        `Desde ${edades[4]} en adelante - ${etapaText[3]}`
-      ];
-      document.getElementById("etapaTexto1").textContent = textos[0];
-      document.getElementById("etapaTexto2").textContent = textos[1];
-      document.getElementById("etapaTexto3").textContent = textos[2];
-      document.getElementById("etapaTexto4").textContent = textos[3];
+
+      // Mostrar texto final de edades y etapas
+      document.getElementById("etapaTexto1").textContent = `De ${edades[0]} a ${edades[1]} - ${etapa1}`;
+      document.getElementById("etapaTexto2").textContent = `De ${edades[2]} a ${edades[3] - 1} - ${etapa2}`;
+      document.getElementById("etapaTexto3").textContent = `De ${edades[3]} a ${edades[4] - 1} - ${etapa3}`;
+      document.getElementById("etapaTexto4").textContent = `Desde ${edades[4]} en adelante - ${etapa4}`;
     }
     
     // === Resultado 11: Ciclo de Vida ===
@@ -414,6 +398,8 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Resultado 12 (Karmas encontrados):", document.getElementById("karmas").value);
     console.log("Resultado 13 (Lecciones Kármicas):", document.getElementById("leccionesKarmicas").value);
     console.log("Cantidad de números (1 al 9):", conteo);
+
+    
   });
 });
 
@@ -428,10 +414,10 @@ Resultado 7 -> Clave Personal        > Según tabla fija: mes + día
 Resultado 8 -> Letra L.              > Posición alfabética de la primera letra del primer nombre
 Resultado 9 -> Regalo Divino         > Suma de los dos últimos dígitos del año → reducir (salvo 11, 22 o 33)
 Resultado 10 -> Etapas               >
-    Etapa 1: Mes, Día y Año reducidos
-    Etapa 2: Etapa1_izq + Etapa1_centro y Etapa1_centro + Etapa1_der (reduciendo ambos antes)
-    Etapa 3: Suma de Etapa2 izquierda y derecha → reducir
-    Etapa 4: Etapa1_izq + Etapa1_der → reducir
+    Etapa 1: Se obtendrá sumando el més (etapa1_izq) + día (etapa1_centro) → reducir (salvo 11, 22 o 33)
+    Etapa 2: Se obtendrá sumando el día (etapa1_centro) + año (etapa1_der) → reducir (salvo 11, 22 o 33)
+    Etapa 3: Suma de Etapa 1 + Etapa 2 → reducir (salvo 11, 22 o 33)
+    Etapa 4: Se obtendrá sumando el més (etapa1_izq) + año (etapa1_der) → reducir (salvo 11, 22 o 33)
 Resultado 11 -> Ciclo de Vida        > Según edad: usa mes, día o año reducido según rango de edad
 Resultado 12 -> Karmas               > Detecta 13, 14, 16 o 19 en: esencia, nombres, sendero, verticales y potencial
 Resultado 13 -> Lecciones Kármicas   > Números del 1 al 9 que no aparecen en el nombre completo
