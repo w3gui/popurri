@@ -358,6 +358,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("leccionesKarmicas").value = lecciones.join(", ") || "—";
 
+    // Resultado 14: Vocales sin reducir
+    let ddVocales = 0;
+    letrasSolo.split('').forEach(l => {
+      if (vocalesSet.has(l)) ddVocales += alfabeto[l] || 0;
+    });
+    document.getElementById("dobleDigitoVocales").value = ddVocales;
+
+    // Resultado 15: Consonantes sin reducir
+    let ddConsonantes = 0;
+    letrasSolo.split('').forEach(l => {
+      if (!vocalesSet.has(l) && /[A-ZÑ]/.test(l)) ddConsonantes += alfabeto[l] || 0;
+    });
+    document.getElementById("dobleDigitoConsonantes").value = ddConsonantes;
+
+    // Resultado 16: Total
+    const ddTotal = ddVocales + ddConsonantes;
+    document.getElementById("dobleDigitoTotal").value = ddTotal;
+
+    // Resultado 17: Suma dígito a dígito de la fecha
+    let ddFecha = 0;
+    if (fechaNacimiento) {
+      const [anio, mes, dia] = fechaNacimiento.split("-");
+      ddFecha = [...(dia + mes + anio)].reduce((suma, d) => suma + parseInt(d), 0);
+    }
+    document.getElementById("dobleDigitoFecha").value = ddFecha;
+
+    // Resultado 18: Día + Mes + Año (2 dígitos)
+    let ddComponentes = 0;
+    if (fechaNacimiento) {
+      const [anio, mes, dia] = fechaNacimiento.split("-").map(num => parseInt(num));
+      const anio2Dig = anio % 100;
+      ddComponentes = dia + mes + anio2Dig;
+    }
+    document.getElementById("dobleDigitoComponentes").value = ddComponentes;
+
     // === DEBUG ===
     console.log("Palabras:", palabras);
     console.log("Parciales Vocales:", parcialesVocales);
