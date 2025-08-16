@@ -396,11 +396,17 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Resultado 8 (Letra L):", correlacionLetra);
     console.log("Resultado 9 (Regalo Divino):", regaloDivino);
     console.log("Resultado 10 (Etapas): edades =", edades);
+    console.log("Etapa 1:", etapa1, "| Etapa 2:", etapa2, "| Etapa 3:", etapa3, "| Etapa 4:", etapa4);
 
     console.log("Resultado 11 (Ciclo de Vida):", document.getElementById("cicloVida").value);
     console.log("Resultado 12 (Karmas encontrados):", document.getElementById("karmas").value);
     console.log("Resultado 13 (Lecciones Kármicas):", document.getElementById("leccionesKarmicas").value);
     console.log("Cantidad de números (1 al 9):", conteo);
+    console.log("Resultado 14 (Doble Dígito Vocales):", ddVocales);
+    console.log("Resultado 15 (Doble Dígito Consonantes):", ddConsonantes);
+    console.log("Resultado 16 (Doble Dígito Total):", ddTotal);
+    console.log("Resultado 17 (Doble Dígito Fecha):", ddFecha);
+    console.log("Resultado 18 (Arcano Natal):", ArcanoNatal);
 
     
   });
