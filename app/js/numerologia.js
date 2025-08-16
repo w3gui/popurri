@@ -379,6 +379,65 @@ document.addEventListener("DOMContentLoaded", () => {
       ArcanoNatal = dia + mes + anioReducido;  // sin reducir el resultado final
     }
     document.getElementById("ArcanoNatal").value = ArcanoNatal;
+    
+    // Sección de cálculo predictivo: Resultados 19 al 23
+    // Se activa con el botón 'btnCalcularPredictiva'
+    document.getElementById("btnCalcularPredictiva").addEventListener("click", () => {
+      const fechaNacimiento = document.getElementById("fechaNacimiento").value;
+      const anioEnCurso = parseInt(document.getElementById("anioEnCurso").value);
+      const nombres = document.getElementById("nombres").value.trim().toUpperCase();
+      const apellidos = document.getElementById("apellidos").value.trim().toUpperCase();
+      const nombreCompleto = `${nombres} ${apellidos}`;
+
+      if (!fechaNacimiento || isNaN(anioEnCurso)) return;
+
+      const [anioNac, mesNac, diaNac] = fechaNacimiento.split("-").map(Number);
+      const mesReducido = reducirNumero(mesNac);
+      const diaReducido = reducirNumero(diaNac);
+      const anioReducido = reducirNumero(anioEnCurso.toString().split('').reduce((a, b) => a + parseInt(b), 0));
+
+      // === Resultado 19: Año Personal ===
+      const sumaAP = mesReducido + diaReducido + anioReducido;
+      const anioPersonal = [11, 22, 33].includes(sumaAP) ? sumaAP : reducirNumero(sumaAP);
+      document.getElementById("anioPersonal").value = anioPersonal;
+
+      // === Resultado 20: Dígito de Edad ===
+      const edadAntes = anioEnCurso - anioNac - 1;
+      const edadDespues = edadAntes + 1;
+      const edad1 = reducirNumero(edadAntes);
+      const edad2 = reducirNumero(edadDespues);
+      const sumaEdad = edad1 + edad2;
+      const digitoEdad = [11, 22, 33].includes(sumaEdad) ? sumaEdad : reducirNumero(sumaEdad);
+      document.getElementById("digitoEdad").value = digitoEdad;
+      document.getElementById("digitoEdadTexto").textContent = `20. Dígito de Edad ${edadAntes} + ${edadDespues} →`;
+
+      // === Resultado 21: Edad actual durante el año en curso ===
+      document.getElementById("edadActual").value = edadDespues;
+
+      // === Resultado 22: Mes Personal ===
+      const mesHoy = new Date().getMonth() + 1;
+      const mesPersonalBase = anioPersonal + mesHoy;
+      const mesPersonal = [11, 22, 33].includes(mesPersonalBase) ? mesPersonalBase : reducirNumero(mesPersonalBase);
+      document.getElementById("mesPersonal").value = mesPersonal;
+
+      // === Resultado 23: Tránsito de Letra ===
+      const letrasSolo = nombreCompleto.replace(/[^A-ZÑ]/g, '');
+      const letrasArray = letrasSolo.split("");
+
+      let edadTotal = edadDespues;
+      let i = 0;
+      let suma = 0;
+      let letraActual = "";
+
+      while (suma < edadTotal && i < 1000) {
+        const letra = letrasArray[i % letrasArray.length];
+        const valor = alfabeto[letra] || 0;
+        suma += valor;
+        letraActual = letra;
+        i++;
+      }
+      document.getElementById("transitoLetra").value = letraActual;
+    });
 
     // === DEBUG ===
     console.log("Palabras:", palabras);
@@ -407,6 +466,8 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Resultado 16 (Doble Dígito Total):", ddTotal);
     console.log("Resultado 17 (Doble Dígito Fecha):", ddFecha);
     console.log("Resultado 18 (Arcano Natal):", ArcanoNatal);
+
+
 
     
   });
