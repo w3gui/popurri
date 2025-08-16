@@ -368,14 +368,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.getElementById("dobleDigitoFecha").value = ddFecha;
 
-    // Resultado 18: Día + Mes + Año (2 dígitos)
-    let ddComponentes = 0;
+    // === Resultado 18: Día + Mes + Año (reducido a dos dígitos mediante suma de dígitos, sin reducir final) ===
+    let ArcanoNatal = 0;
     if (fechaNacimiento) {
       const [anio, mes, dia] = fechaNacimiento.split("-").map(num => parseInt(num));
-      const anio2Dig = anio % 100;
-      ddComponentes = dia + mes + anio2Dig;
+
+      // Sumar dígitos del año completo
+      const anioReducido = anio.toString().split('').reduce((a, b) => a + parseInt(b), 0);  // ej. 1982 → 1+9+8+2 = 20
+
+      ArcanoNatal = dia + mes + anioReducido;  // sin reducir el resultado final
     }
-    document.getElementById("dobleDigitoComponentes").value = ddComponentes;
+    document.getElementById("ArcanoNatal").value = ArcanoNatal;
 
     // === DEBUG ===
     console.log("Palabras:", palabras);
