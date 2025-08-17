@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Derechos Reservados • Numerología Profunda</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body id="body" class="app-body dark-mode">
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div class="hero-title">
+        <h1 class="mb-1">Derechos Reservados</h1>
+        <p class="mb-0">Aviso legal y condiciones de uso</p>
+      </div>
+      <div class="hero-actions d-flex align-items-center gap-2">
+        <a href="app.html" class="btn btn-gradient">Volver a la app</a>
+        <button class="btn btn-glass modo-toggle" id="toggleModo" title="Cambiar tema">
+          <span class="toggle-emoji" aria-hidden="true">🌞</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container content">
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Titularidad y Propiedad Intelectual</h5>
+        <p class="mb-2">
+          Salvo indicación expresa, todo el contenido del sitio, incluyendo la identidad visual,
+          maquetación, componentes de interfaz, estilos, código fuente de la aplicación y textos
+          de apoyo, son propiedad de <strong>WWM</strong> y/o de sus autores colaboradores.
+        </p>
+        <p class="mb-0">
+          Queda <strong>prohibida</strong> su reproducción, distribución, comunicación pública, transformación
+          o cualquier uso no autorizado, total o parcial, en cualquier soporte y por cualquier medio,
+          sin consentimiento previo y por escrito.
+        </p>
+      </div>
+    </section>
+
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Licencia de Uso</h5>
+        <ul class="mb-0">
+          <li>Se permite el uso personal de la calculadora dentro del propio navegador.</li>
+          <li>No se permite su explotación comercial sin autorización.</li>
+          <li>No se permite retirar avisos de autoría ni marcas.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Marcas y Contenidos de Terceros</h5>
+        <p class="mb-0">
+          Las marcas, logotipos o nombres de terceros son propiedad de sus respectivos titulares y se
+          utilizan únicamente a efectos descriptivos o de interoperabilidad (por ejemplo, Bootstrap).
+        </p>
+      </div>
+    </section>
+
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Exención de Responsabilidad</h5>
+        <p class="mb-0">
+          Los resultados numerológicos tienen carácter informativo y lúdico. No constituyen consejo profesional,
+          médico, psicológico, financiero ni legal. El usuario es responsable de sus decisiones y del uso que haga
+          de la información presentada por la aplicación.
+        </p>
+      </div>
+    </section>
+
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Actualizaciones</h5>
+        <p class="mb-2">
+          Este aviso puede actualizarse para reflejar mejoras técnicas o cambios legales. Te recomendamos revisarlo periódicamente.
+        </p>
+        <p class="mb-0"><strong>Última actualización:</strong> 17/08/2025</p>
+      </div>
+    </section>
+
+    <section class="card glass mb-5">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Contacto</h5>
+        <p class="mb-0">
+          Si deseas solicitar autorización o reportar un uso indebido, contáctanos en:
+          <a href="mailto:conspirame@proton.me">aquí</a>
+        </p>
+      </div>
+    </section>
+    
+    <section class="card glass mb-5">
+      <div class="card-body">
+        <h5 class="card-title mb-2">Co-Autores</h5>
+        <p class="mb-0">
+          El único autorizado a distribuir, vender o usar el codigo fuente es Martín Noe.
+          Si desea obtener el código aqui expuesto se puede contactar directamente a:
+          <a href="mailto:">'correo de martin'</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container d-flex justify-content-between flex-wrap gap-2">
+      <small>© 2025 • WWM</small>
+      <small><a href="app.html" class="footer-link">Volver a la app</a></small>
+    </div>
+  </footer>
+
+  <script>
+    // Toggle de tema en la página legal (igual que en la app)
+    const body = document.getElementById('body');
+    const toggleBtn = document.getElementById('toggleModo');
+    function setIsDark(isDark){ 
+      toggleBtn.querySelector('.toggle-emoji').textContent = isDark ? '🌞' : '🌙';
+      document.querySelectorAll('table').forEach(t => t.classList.toggle('table-dark', isDark));
+      document.querySelectorAll('thead').forEach(th => {
+        th.classList.toggle('table-light', !isDark);
+        th.classList.toggle('table-dark', isDark);
+      });
+    }
+    setIsDark(body.classList.contains('dark-mode'));
+    toggleBtn.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+      setIsDark(body.classList.contains('dark-mode'));
+    });
+  </script>
+</body>
+</html>

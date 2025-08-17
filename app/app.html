@@ -1,277 +1,312 @@
-<!-- /app/app.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Numerología - Martín Noé</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <title>🔮 Numerología</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="css/style.css" />
 </head>
-<body class="bg-light p-3 dark-mode" id="body">
 
-  <button class="btn btn-outline-light modo-toggle" id="toggleModo" title="Cambiar tema">
-    🌞
-  </button>
+<body id="body" class="app-body dark-mode">
+  <!-- HERO HEADER -->
+  <header class="hero">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div class="hero-title">
+        <h1 class="mb-1">Numerología Profunda</h1>
+        <p class="mb-0">Calculadora integral • Esencia, Senderos y Predictiva</p>
+      </div>
 
-  <div class="container shadow rounded p-4">
-    <h2 class="mb-4">Numerología Profunda</h2>
+      <div class="hero-actions d-flex align-items-center gap-2">
+        <button class="btn btn-gradient" id="btnCalcular" title="Calcular todo">Calcular</button>
+        <button class="btn btn-outline-light btn-pill" id="btnCalcularPredictiva" title="Recalcular Predictiva (19–31)">Predictiva</button>
+        
 
-    <!-- Datos personales -->
-    <div class="row mb-3">
-      <div class="col-md-4">
-        <label for="nombres" class="form-label">Nombres</label>
-        <input type="text" class="form-control" id="nombres">
-      </div>
-      <div class="col-md-4">
-        <label for="apellidos" class="form-label">Apellidos</label>
-        <input type="text" class="form-control" id="apellidos">
-      </div>
-      <div class="col-md-3">
-        <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
-        <input type="date" class="form-control" id="fechaNacimiento">
-      </div>
-      <div class="col-md-1 d-flex align-items-end">
-        <button class="btn btn-primary w-100" id="btnCalcular">Calcular</button>
+        <button class="btn btn-glass modo-toggle" id="toggleModo" title="Cambiar tema">
+          <span class="toggle-emoji" aria-hidden="true">🌞</span>
+        </button>
       </div>
     </div>
+  </header>
 
-    <!-- SEPARADOR -->
-    <div class="separador-grueso"></div>
-    <!-- Resultados (1-3) -->
-    <div class="row mb-3">
-      <!-- Resultado 1: Esencia Íntima -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="esenciaIntima" class="me-2 mb-0">1. Esencia Íntima</label>
-        <input type="text" class="form-control text-center" id="esenciaIntima" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 2: Imagen -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="imagen" class="me-2 mb-0">2. Imagen</label>
-        <input type="text" class="form-control text-center" id="imagen" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 3: Sendero del Mundo -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="serMundo" class="me-2 mb-0">3. Sendero del Mundo</label>
-        <input type="text" class="form-control text-center" id="serMundo" readonly style="width: 60px;">
-      </div>
-    </div>
-    <!-- Resultados (3-6) -->
-    <div class="row mb-3">
-      <!-- Resultado 4: Sendero Natal -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="senderoNatal" class="me-2 mb-0">4. Sendero Natal</label>
-        <input type="text" class="form-control text-center" id="senderoNatal" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 5: Potencial -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="potencial" class="me-2 mb-0">5. Potencial</label>
-        <input type="text" class="form-control text-center" id="potencial" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 6: Ciclo de Letras -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="cicloLetras" class="me-2 mb-0">6. Ciclo de Letras</label>
-        <input type="text" class="form-control text-center" id="cicloLetras" readonly style="width: 60px;">
-      </div>
-    </div>
-    <!-- Resultados (7-9) -->
-    <div class="row mb-3">
-      <!-- Resultado 7: Clave Personal -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="clavePersonal" class="me-2 mb-0">7. Clave Personal</label>
-        <input type="text" class="form-control text-center" id="clavePersonal" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 8: Letra L. -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="letraLeccion" class="me-2 mb-0">8. Letra L.</label>
-        <input type="text" class="form-control text-center" id="letraLeccion" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 9: Regalo Divino -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="regaloDivino" class="me-2 mb-0">9. Regalo Divino</label>
-        <input type="text" class="form-control text-center" id="regaloDivino" readonly style="width: 60px;">
-      </div>
-    </div>
-    <!-- Resultado 10: Etapas -->
-    <div class="row mb-5">
-      <span>Etapas</span>
-      <div class="d-flex">
-        <label class="me-2 mb-0" for="duracionEtapas">Periodos (años)</label>
-        <input type="number" id="duracionEtapas" class="form-control" value="" min="1" style="width: 60px;">
-      </div>
-      <div class="col-md-6">
-        <h5 class="mb-3">10. Etapas</h5>
-        <div class="d-flex flex-column align-items-center gap-2" style="font-size: 1.25rem;">
-          <!-- Fila 1 -->
-          <div class="d-flex justify-content-between w-100 px-5">
-            <span id="etapa1_izq">-</span>
-            <span id="etapa1_centro">-</span>
-            <span id="etapa1_der">-</span>
+  <!-- CONTENIDO -->
+  <main class="container content">
+    <h2 class="mb-4 text-center">Calculadora</h2>
+    <!-- CARD: Datos personales -->
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Datos personales</h5>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="nombres" class="form-label">Nombres</label>
+            <input type="text" class="form-control form-control-neo" id="nombres" />
           </div>
-          <!-- Fila 2 -->
-          <div class="d-flex justify-content-center gap-5">
-            <span id="etapa2_izq">-</span>
-            <span id="etapa2_der">-</span>
+          <div class="col-md-4">
+            <label for="apellidos" class="form-label">Apellidos</label>
+            <input type="text" class="form-control form-control-neo" id="apellidos" />
           </div>
-          <!-- Fila 3 -->
-          <div>
-            <span id="etapa3">-</span>
-          </div>
-          <!-- Fila 4 -->
-          <div>
-            <span id="etapa4">-</span>
+          <div class="col-md-4">
+            <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+            <input type="date" class="form-control form-control-neo" id="fechaNacimiento" />
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Interpretación a la derecha -->
-      <div class="col-md-6">
-        <h6 class="mb-3">Etapas de vida</h6>
-        <div class="mb-2">
-          <strong>Primera etapa:</strong> <span id="etapaTexto1">De ___ a ___ - ___</span>
-        </div>
-        <div class="mb-2">
-          <strong>Segunda etapa:</strong> <span id="etapaTexto2">De ___ a ___ - ___</span>
-        </div>
-        <div class="mb-2">
-          <strong>Tercera etapa:</strong> <span id="etapaTexto3">De ___ a ___ - ___</span>
-        </div>
-        <div class="mb-2">
-          <strong>Cuarta etapa:</strong> <span id="etapaTexto4">Desde ___ en adelante - ___</span>
+    <!-- GRID: Resultados 1–9 -->
+    <section class="grid-cards mb-4">
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">1. Esencia Íntima</h6>
+          <input type="text" id="esenciaIntima" class="form-control form-control-neo text-center" readonly />
         </div>
       </div>
-      <!-- Resultado 11: Ciclo de Vida -->
-      <div class="row mb-3">
-        <div class="col-md-4 d-flex align-items-center">
-          <label for="cicloVida" class="me-2 mb-0">11. Ciclo de Vida</label>
-          <input type="text" class="form-control text-center" id="cicloVida" readonly style="width: 60px;">
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">2. Imagen</h6>
+          <input type="text" id="imagen" class="form-control form-control-neo text-center" readonly />
         </div>
       </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">3. Sendero del Mundo</h6>
+          <input type="text" id="serMundo" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">4. Sendero Natal</h6>
+          <input type="text" id="senderoNatal" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">5. Potencial</h6>
+          <input type="text" id="potencial" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">6. Ciclo de Letras</h6>
+          <input type="text" id="cicloLetras" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">7. Clave Personal</h6>
+          <input type="text" id="clavePersonal" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">8. Letra L.</h6>
+          <input type="text" id="letraLeccion" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">9. Regalo Divino</h6>
+          <input type="text" id="regaloDivino" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+    </section>
+
+    <!-- CARD: Etapas (10–11) -->
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+          <h5 class="card-title mb-0">10. Etapas</h5>
+          <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0" for="duracionEtapas">Periodos (años)</label>
+            <input type="number" id="duracionEtapas" class="form-control form-control-neo w-auto text-center" min="1" />
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="etapas-grid">
+              <div class="etapa fila fila-1">
+                <span id="etapa1_izq">-</span>
+                <span id="etapa1_centro">-</span>
+                <span id="etapa1_der">-</span>
+              </div>
+              <div class="etapa fila fila-2">
+                <span id="etapa2_izq">-</span>
+                <span id="etapa2_der">-</span>
+              </div>
+              <div class="etapa fila fila-3">
+                <span id="etapa3">-</span>
+              </div>
+              <div class="etapa fila fila-4">
+                <span id="etapa4">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="list-group list-group-transparent">
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>Primera etapa</strong>
+                <span id="etapaTexto1">De ___ a ___ - ___</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>Segunda etapa</strong>
+                <span id="etapaTexto2">De ___ a ___ - ___</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>Tercera etapa</strong>
+                <span id="etapaTexto3">De ___ a ___ - ___</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>Cuarta etapa</strong>
+                <span id="etapaTexto4">Desde ___ en adelante - ___</span>
+              </div>
+            </div>
+
+            <div class="mt-3">
+              <label for="cicloVida" class="form-label">11. Ciclo de Vida</label>
+              <input type="text" id="cicloVida" class="form-control form-control-neo text-center w-auto" readonly />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRID: Karma (12–13) y Doble Dígito (14–18) -->
+    <section class="grid-cards mb-4">
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">12. Karmas</h6>
+          <input type="text" id="karmas" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">13. Lecciones Kármicas</h6>
+          <input type="text" id="leccionesKarmicas" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">14. DD Vocales</h6>
+          <input type="text" id="dobleDigitoVocales" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">15. DD Consonantes</h6>
+          <input type="text" id="dobleDigitoConsonantes" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">16. DD Total</h6>
+          <input type="text" id="dobleDigitoTotal" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">17. DD Fecha Suma</h6>
+          <input type="text" id="dobleDigitoFecha" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+      <div class="card glass">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-2">18. Arcano Natal</h6>
+          <input type="text" id="ArcanoNatal" class="form-control form-control-neo text-center" readonly />
+        </div>
+      </div>
+    </section>
+
+    <!-- CARD: Predictiva (19–23) -->
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+          <h5 class="card-title mb-0">Numerología Predictiva</h5>
+          <div class="d-flex align-items-center gap-2">
+            <label for="anioEnCurso" class="form-label mb-0">Año en curso</label>
+            <input type="number" class="form-control form-control-neo w-auto text-center" id="anioEnCurso" value="2025" />
+            <button class="btn btn-outline-light btn-pill" id="btnCalcularPredictiva" title="Recalcular 19–31">Calcular</button>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="anioPersonal" class="form-label">19. Año Personal</label>
+            <input type="text" id="anioPersonal" class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4">
+            <label id="digitoEdadTexto" for="digitoEdad" class="form-label">20. Dígito de Edad</label>
+            <input type="text" id="digitoEdad" class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4">
+            <label for="edadActual" class="form-label">21. Edad Actual</label>
+            <input type="text" id="edadActual" class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4">
+            <label for="mesPersonal" class="form-label">22. Mes Personal</label>
+            <input type="text" id="mesPersonal" class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4">
+            <label for="transitoLetra" class="form-label">23. Tránsito de Letra</label>
+            <input type="text" id="transitoLetra" class="form-control form-control-neo text-center" readonly />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARD: Cuatrimestres (24–31) -->
+    <section class="card glass mb-5">
       
-    </div>
-    
-    <!-- Resultados (12-13) -->
-    <div class="row mb-3">
-      <span>Karma</span>
-      <!-- Resultado 12: Karmas -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="karmas" class="me-2 mb-0">12. Karmas</label>
-        <input type="text" id="karmas" class="form-control text-center" value="" min="1" style="width: 60px;">
-      </div>
-      <!-- Resultado 13: Lecciones Kármicas -->
-      <div class="col-md-4 d-flex align-items-center">
-        <label for="leccionesKarmicas" class="me-2 mb-0">13. Lecciones Kármicas</label>
-        <input type="text" id="leccionesKarmicas" class="form-control text-center" value="" min="1" style="width: 60px;">
-      </div>
-    </div>
-    <!-- Resultados (14-18) - Doble Dígito -->
-    <div class="row mb-3">
-      <!-- Resultado 14: DD Vocales -->
-      <span>Doble Digito</span>
-      <div class="col-md-2 d-flex align-items-center">
-        <label for="dobleDigitoVocales" class="me-2 mb-0">14. DD Vocales</label>
-        <input type="text" id="dobleDigitoVocales" class="form-control text-center" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 15: DD Consonantes -->
-      <div class="col-md-2 d-flex align-items-center">
-        <label for="dobleDigitoConsonantes" class="me-2 mb-0">15. DD Consonantes</label>
-        <input type="text" id="dobleDigitoConsonantes" class="form-control text-center" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 16: DD Total -->
-      <div class="col-md-2 d-flex align-items-center">
-        <label for="dobleDigitoTotal" class="me-2 mb-0">16. DD Total</label>
-        <input type="text" id="dobleDigitoTotal" class="form-control text-center" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 17: DD Fecha suma dígitos -->
-      <div class="col-md-3 d-flex align-items-center">
-        <label for="dobleDigitoFecha" class="me-2 mb-0">17. DD Fecha Suma</label>
-        <input type="text" id="dobleDigitoFecha" class="form-control text-center" readonly style="width: 60px;">
-      </div>
-      <!-- Resultado 18: Arcano Natal -->
-      <div class="col-md-3 d-flex align-items-center">
-        <label for="ArcanoNatal" class="me-2 mb-0">18. Arcano Natal</label>
-        <input type="text" id="ArcanoNatal" class="form-control text-center" readonly style="width: 60px;">
-      </div>
-    </div>
-
-    <!-- SEPARADOR -->
-    <div class="separador-grueso"></div>
-
-    <!-- Sección: Numerología Predictiva -->
-    <div class="row mb-3">
-      <div class="col-md-3">
-        <h5>Numerología Predictiva</h5>
-        <label for="anioEnCurso" class="form-label">Año en curso</label>
-        <input type="number" class="form-control" id="anioEnCurso" value="2025">
-        <button class="btn btn-sm btn-secondary mt-2" id="btnCalcularPredictiva">Calcular</button>
-      </div>
-      
-      <div class="col-md-9">
-        <div class="row mb-2">
-          <!-- Resultado 19 -->
-          <div class="col-md-4 d-flex align-items-center">
-            <label for="anioPersonal" class="me-2 mb-0">19. Año Personal</label>
-            <input type="text" class="form-control text-center" id="anioPersonal" readonly style="width: 60px;">
-          </div>
-          <!-- Resultado 20 -->
-          <div class="col-md-4 d-flex align-items-center">
-            <label id="digitoEdadTexto" for="digitoEdad" class="me-2 mb-0">20. Dígito de Edad</label>
-            <input type="text" class="form-control text-center" id="digitoEdad" readonly style="width: 60px;">
-          </div>
-          <!-- Resultado 21 -->
-          <div class="col-md-4 d-flex align-items-center">
-            <label for="edadActual" class="me-2 mb-0">21. Edad Actual</label>
-            <input type="text" class="form-control text-center" id="edadActual" readonly style="width: 60px;">
-          </div>
-        </div>
-        <div class="row mb-2">
-          <!-- Resultado 22 -->
-          <div class="col-md-4 d-flex align-items-center">
-            <label for="mesPersonal" class="me-2 mb-0">22. Mes Personal</label>
-            <input type="text" class="form-control text-center" id="mesPersonal" readonly style="width: 60px;">
-          </div>
-          <!-- Resultado 23 -->
-          <div class="col-md-4 d-flex align-items-center">
-            <label for="transitoLetra" class="me-2 mb-0">23. Tránsito de Letra</label>
-            <input type="text" class="form-control text-center" id="transitoLetra" readonly style="width: 60px;">
-          </div>
+      <div class="card-body">
+        <h5 class="card-title mb-3">Cuatrimestres</h5>
+        <div class="table-responsive rounded overflow-hidden">
+          <table class="table table-glass table-borderless text-center align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Armónico</th>
+                <th>1º Cuatri</th>
+                <th>2º Cuatri</th>
+                <th>3º Cuatri</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span id="resultado24">-</span></td>
+                <td><span id="resultado25">-</span></td>
+                <td><span id="resultado26">-</span></td>
+                <td><span id="resultado27">-</span></td>
+              </tr>
+              <tr class="sep-row"><td colspan="4"></td></tr>
+              <tr>
+                <td><span id="resultado28">-</span></td>
+                <td><span id="resultado29">-</span></td>
+                <td><span id="resultado30">-</span></td>
+                <td><span id="resultado31">-</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
-    <!-- Resultados 24 al 31: Cuatrimestres -->
-    <div class="mb-4">
-      <h6>Cuatrimestres</h6>
-      <div class="table-responsive">
-        <table class="table table-bordered text-center">
-          <thead class="table-light">
-            <tr>
-              <th>Armónico</th>
-              <th>1º Cuatri</th>
-              <th>2º Cuatri</th>
-              <th>3º Cuatri</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span id="resultado24">-</span></td>
-              <td><span id="resultado25">-</span></td>
-              <td><span id="resultado26">-</span></td>
-              <td><span id="resultado27">-</span></td>
-            </tr>
-            <tr>
-              <td><span id="resultado28">-</span></td>
-              <td><span id="resultado29">-</span></td>
-              <td><span id="resultado30">-</span></td>
-              <td><span id="resultado31">-</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <script src="js/numerologia.js"></script>
-    </div>
-    <div class="separador-grueso"></div>
-  </div>
+    </section>
+  </main>
 
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container d-flex justify-content-between flex-wrap gap-2">
+      <small><a href="derechos.html" class="footer-link">Derechos reservados</a></small>
+      <small>Martín Noé</small>
+      <small>© 2025 • WWM</small>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/numerologia.js"></script>
 </body>
 </html>

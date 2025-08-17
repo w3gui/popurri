@@ -401,6 +401,7 @@ document.addEventListener("DOMContentLoaded", () => {
     calcularPredictiva(); // solo 19–31
   });
 });
+
 /*
 Resultado 1 -> Esencia Íntima        > Vocales por palabra → reducir → sumar dígitos → reducir total
 Resultado 2 -> Imagen                > Consonantes por palabra → reducir → sumar dígitos → reducir total
