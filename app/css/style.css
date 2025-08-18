@@ -151,9 +151,17 @@
 .fila-3, .fila-4 { gap: 12px; }
 
 /* ====== Tables ====== */
+/* Asegurar color de texto de la tabla según el tema */
+.table-glass,
+.table-glass thead th,
+.table-glass tbody td {
+  color: var(--text) !important;           /* clave: ata el color a la variable del tema */
+}
+
+/* Evitar que Bootstrap meta fondos que “ensucien” */
 .table-glass {
-  --bs-table-bg: transparent;
-  color: var(--text);
+  --bs-table-bg: transparent !important;
+  background: transparent !important;
 }
 .table-glass thead th {
   font-weight: 700;
@@ -186,27 +194,27 @@
 }
 
 
-/* Tema oscuro mejorado */
-body.dark-mode {
-    background-color: #121212 !important;
-    color: #f8f9fa !important;
+/* Tema oscuro mejorado (coherente con .app-body) */
+.app-body.dark-mode {
+  background-color: #121212 !important;
+  color: #f8f9fa !important;
 }
 
-body.dark-mode .card,
-body.dark-mode .table {
-    background-color: #1e1e1e !important;
-    color: #f8f9fa !important;
+.app-body.dark-mode .card,
+.app-body.dark-mode .table {
+  background-color: #1e1e1e !important;
+  color: #f8f9fa !important;
 }
 
-body.dark-mode input,
-body.dark-mode select {
-    background-color: #2c2c2c !important;
-    color: #f8f9fa !important;
-    border: 1px solid #555 !important;
+.app-body.dark-mode input,
+.app-body.dark-mode select {
+  background-color: #2c2c2c !important;
+  color: #f8f9fa !important;
+  border: 1px solid #555 !important;
 }
 
-body.dark-mode label {
-    color: #f8f9fa !important;
+.app-body.dark-mode label {
+  color: #f8f9fa !important;
 }
 
 /* Botón flotante modo oscuro */
@@ -231,4 +239,18 @@ body.dark-mode label {
 .footer a.footer-link:hover {
   color: var(--text);
   border-bottom-color: var(--card-border);
+}
+
+/* ====== Toggle ====== */
+.modo-toggle {
+  position: fixed;
+  top: 15px; right: 15px;
+  z-index: 1000;
+  font-size: 1.4rem;
+  border-radius: 50%;
+  width: 50px; height: 50px;
+  display: flex; align-items: center; justify-content: center;
+}
+.modo-toggle .toggle-emoji {
+  display: inline-block; font-size: 1.15rem; transform: translateY(1px);
 }
