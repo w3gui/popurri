@@ -353,6 +353,37 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
+    // Refactor de armonicoExtendido con comprobaciones completas para los resultados 28–31
+    function armonicoExtendido28(valor, anioActual, reducirPosteriores = true) {
+      const suma = anioActual + valor;
+
+      // Si es menor a 2000 → sumar dígito por dígito sin más
+      if (suma < 2000) {
+        return suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+      }
+
+      const str = suma.toString();
+      const primerosDos = parseInt(str.slice(0, 2));
+      const ultimosDos = parseInt(str.slice(2));
+
+      let total;
+      if (reducirPosteriores) {
+        // Para 28, 30, 31 → se reducen los últimos dos dígitos
+        const reducidos = ultimosDos.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+        total = primerosDos + reducidos;
+      } else {
+        // Para 29 → NO reducir los últimos dos dígitos
+        total = primerosDos + ultimosDos;
+      }
+
+      // Si el total supera 78, sumar dígito por dígito del número completo
+      if (total > 78) {
+        return suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+      }
+
+      return total;
+    }
+
     const armonicoExtendido = (valor, anioActual) => {
       const suma = anioActual + valor;
       if (suma < 2000) {
@@ -375,9 +406,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const r27 = armonicoBasico(clavePersonalRaw, anioEnCurso);
 
     const r28 = armonicoExtendido(dobleDigitoAnioNacimiento, anioEnCurso);
-    const r29 = armonicoExtendido(edadDespues, anioEnCurso);
+    // const r29 = armonicoExtendido(edadDespues, anioEnCurso);
     const r30 = armonicoExtendido(senderoNatalRaw, anioEnCurso);
     const r31 = armonicoExtendido(clavePersonalRaw, anioEnCurso);
+    
+    // ➕ USO sugerido en calcularPredictiva:
+    // const r28 = armonicoExtendido(dobleDigitoAnioNacimiento, anioEnCurso, true);
+    const r29 = armonicoExtendido28(edadDespues, anioEnCurso, true); // ← sin reducción
+    // const r30 = armonicoExtendido(senderoNatalRaw, anioEnCurso, true);
+    // const r31 = armonicoExtendido(clavePersonalRaw, anioEnCurso, true);
 
     // Pintamos SOLO en los spans existentes (coinciden con tu HTML)
     document.getElementById("resultado24").textContent = r24;
