@@ -273,12 +273,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.getElementById("dobleDigitoFecha").value = ddFecha;
 
-    // 18: Arcano Natal (sin reducir final)
+    // 18: Arcano Natal (día + mes + año reducido a 2 cifras)
     let ArcanoNatal = 0;
     if (fechaNacimiento) {
       const [anio, mes, dia] = fechaNacimiento.split("-").map(Number);
-      const anioR = anio.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-      ArcanoNatal = dia + mes + anioR;
+      const anioSuma = anio.toString().split('').reduce((a, b) => a + parseInt(b), 0); // ej: 1+9+9+0 = 19
+      ArcanoNatal = dia + mes + anioSuma; // sin reducir
     }
     document.getElementById("ArcanoNatal").value = ArcanoNatal;
   }
