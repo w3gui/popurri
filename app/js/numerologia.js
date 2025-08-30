@@ -361,7 +361,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const primerosDos = parseInt(suma.toString().substring(0, 2));
         const ultimosDos = parseInt(suma.toString().substring(2));
         const total = primerosDos + ultimosDos;
-        return total <= 78 ? total : reducirADigito(suma);
+        return total <= 78 ? total : suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
       }
     };
 
