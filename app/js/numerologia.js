@@ -1,6 +1,14 @@
 // numerologia.js
 
 document.addEventListener("DOMContentLoaded", () => {
+  // establece en numerologia predictiva la fecha de hoy + 1 año
+  const inputAnioEnCurso = document.getElementById("anioEnCurso");
+  const hoy = new Date();
+  const dentroDeUnAnio = new Date(hoy.getFullYear() + 1, hoy.getMonth(), hoy.getDate());
+  const iso = dentroDeUnAnio.toISOString().split('T')[0]; // formato YYYY-MM-DD
+  inputAnioEnCurso.value = iso;
+  
+  
   // Cambia el tema entre claro y oscuro
   document.getElementById('toggleModo').addEventListener('click', () => {
     const body = document.getElementById('body');
