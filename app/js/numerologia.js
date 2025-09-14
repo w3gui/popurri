@@ -286,7 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Cálculo Predictivo (19–31) — AJUSTADO A SPANS resultado24..31 ===
   function calcularPredictiva() {
     const fechaNacimiento = document.getElementById("fechaNacimiento").value;
-    const anioEnCurso = parseInt(document.getElementById("anioEnCurso").value);
+    const fechaEnCurso = new Date(document.getElementById("anioEnCurso").value);
+    const anioEnCurso = fechaEnCurso.getFullYear();
     const nombres = document.getElementById("nombres").value.trim().toUpperCase();
     const apellidos = document.getElementById("apellidos").value.trim().toUpperCase();
     const nombreCompleto = `${nombres} ${apellidos}`;
@@ -304,8 +305,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("anioPersonal").value = anioPersonal;
 
     // 20: Dígito de Edad
-    const edadAntes = anioEnCurso - anioNac - 1;
-    const edadDespues = edadAntes + 1;
+    const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
+    const yaCumplio = fechaEnCurso >= cumpleEsteAnio;
+
+    const edadDespues = anioEnCurso - anioNac - (yaCumplio ? 0 : 1);
+    const edadAntes = edadDespues - 1;
+    
     const edad1 = reducirNumero(edadAntes);
     const edad2 = reducirNumero(edadDespues);
     const sumaEdad = edad1 + edad2;
