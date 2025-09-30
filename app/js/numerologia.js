@@ -441,10 +441,59 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("resultado31").textContent = r31;
   }
 
+  // === Cálculo Abracadabra (32) ===
+  function calcularAbracadabra() {
+    // 1) Tomar el nombre y apellido sin espacios
+    const nombres = document.getElementById("nombres").value.trim().toUpperCase();
+    const apellidos = document.getElementById("apellidos").value.trim().toUpperCase();
+    const nombreCompleto = (nombres + apellidos).replace(/[^A-ZÑ]/g, '');
+
+    // 2) Primeras 9 letras (relleno con espacio si faltan)
+    const primeras9 = nombreCompleto.slice(0, 9).padEnd(9, ' ');
+
+    // === FILA 1 ===
+    const fila1 = [];
+    for (let i = 0; i < 9; i++) {
+      // Letras
+      document.getElementById(`abracadabra_nombre_${i + 1}`).textContent =
+        primeras9[i] ? primeras9[i] : '';
+
+      // Valores numerológicos
+      const valor = alfabeto[primeras9[i]] || 0;
+      fila1.push(valor);
+
+      const celda = document.getElementById(`r1c${i + 1}_abracadabra_valor_${i + 1}`);
+      if (celda) celda.textContent = valor;
+    }
+
+    // Guardamos todas las filas en un array
+    const filas = [fila1];
+
+    // === FILAS 2 → 9 ===
+    // Cada fila tiene (fila anterior length - 1) celdas
+    for (let f = 2; f <= 9; f++) {
+      const filaAnterior = filas[f - 2]; // array de la fila anterior
+      const filaActual = [];
+
+      for (let c = 0; c < filaAnterior.length - 1; c++) {
+        const sumaReducida = reducirNumero(filaAnterior[c] + filaAnterior[c + 1]);
+        filaActual.push(sumaReducida);
+
+        // Pintamos el valor en la tabla
+        const celda = document.getElementById(`r${f}c${c + 1}`);
+        if (celda) celda.textContent = sumaReducida;
+      }
+
+      filas.push(filaActual);
+    }
+  }
+
+
   // === Listeners ===
   btnCalcular.addEventListener("click", () => {
     calcularBase();       // 1–18
     calcularPredictiva(); // 19–31
+    calcularAbracadabra(); // 32
   });
 
   btnCalcularPredictiva.addEventListener("click", () => {
