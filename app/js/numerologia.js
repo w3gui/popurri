@@ -526,6 +526,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
       filas.push(filaActual);
     }
+    // === CÁLCULO DE rX_sum (sumatorias por fila) ===
+    filas.forEach((fila, i) => {
+      const total = fila.reduce((a, b) => a + b, 0);
+      if (isNaN(total)) return;
+
+      // Primer reducción
+      const primeraReduccion = total
+        .toString()
+        .split('')
+        .reduce((a, b) => a + parseInt(b), 0);
+
+      // Segunda reducción
+      let segundaReduccion = primeraReduccion;
+      if (segundaReduccion >= 10) {
+        segundaReduccion = segundaReduccion
+          .toString()
+          .split('')
+          .reduce((a, b) => a + parseInt(b), 0);
+      }
+
+      // Construimos el texto como "56 / 11 / 2"
+      const textoResultado = `${total}/${primeraReduccion}/${segundaReduccion}`;
+
+      const celdaSum = document.getElementById(`r${i + 1}_sum`);
+      if (celdaSum) celdaSum.textContent = textoResultado;
+    });
   }
 
 
