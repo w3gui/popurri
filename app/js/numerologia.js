@@ -1,5 +1,65 @@
 // numerologia.js
+// === LOGIN SIMPLE LOCAL ===
+const overlay = document.getElementById("login-overlay");
+const btnLogin = document.getElementById("btnLogin");
+const inputEmail = document.getElementById("loginEmail");
+const inputPassword = document.getElementById("loginPassword");
+const loginError = document.getElementById("loginError");
 
+// Usuarios permitidos (puedes editar aquí)
+const usuariosPermitidos = [
+  { email: "guido", password: "123" },
+  { email: "martin", password: "123" },
+  { email: "demo", password: "123" }
+];
+
+// Si ya hay sesión activa, ocultar el login
+if (localStorage.getItem("usuarioAutenticado")) {
+  overlay.style.display = "none";
+}
+
+// Clic en "Entrar"
+btnLogin.addEventListener("click", () => {
+  const email = inputEmail.value.trim().toLowerCase();
+  const password = inputPassword.value.trim();
+
+  if (!email || !password) {
+    loginError.textContent = "Completa ambos campos";
+    loginError.style.display = "block";
+    return;
+  }
+
+  const user = usuariosPermitidos.find(u =>
+    u.email.toLowerCase() === email && u.password === password
+  );
+
+  if (user) {
+    // Guardamos la sesión
+    localStorage.setItem("usuarioAutenticado", email);
+
+    // Mostramos mensaje opcional
+    loginError.style.display = "none";
+
+    // Animación de cierre (suave)
+    // Animación de cierre (suave y desbloqueo total)
+    overlay.style.transition = "opacity 0.6s ease";
+    overlay.style.opacity = "0";
+    overlay.style.pointerEvents = "none"; // Desactiva clics inmediatamente
+    setTimeout(() => {
+    overlay.style.display = "none"; // Lo elimina visualmente del flujo
+    }, 600); // Espera a que termine la animación
+
+
+  } else {
+    loginError.textContent = "Acceso denegado";
+    loginError.style.display = "block";
+  }
+});
+
+document.getElementById("btnLogout")?.addEventListener("click", () => {
+  localStorage.removeItem("usuarioAutenticado");
+  location.reload();
+});
 document.addEventListener("DOMContentLoaded", () => {
   // establece en numerologia predictiva la fecha de hoy + 1 año
   const inputAnioEnCurso = document.getElementById("anioEnCurso");

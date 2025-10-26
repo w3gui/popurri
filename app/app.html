@@ -31,6 +31,21 @@
 
   <!-- CONTENIDO -->
   <main class="container content">
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+        style="background: rgba(0,0,0,0.8); z-index:2000;">
+      <div class="card glass p-4 text-center" style="max-width:380px; width:90%;">
+        <h5 class="mb-3">Acceso a Numerología Profunda</h5>
+        <div class="mb-3">
+          <input type="email" id="loginEmail" class="form-control form-control-neo text-center" placeholder="Email" />
+        </div>
+        <div class="mb-3">
+          <input type="password" id="loginPassword" class="form-control form-control-neo text-center" placeholder="Contraseña" />
+        </div>
+        <button id="btnLogin" class="btn btn-gradient w-100">Entrar</button>
+        <p id="loginError" class="text-danger mt-3 mb-0" style="display:none;">Acceso denegado</p>
+      </div>
+    </div>
     <h2 class="mb-4 text-center">Calculadora</h2>
     <!-- CARD: Datos personales -->
     <section class="card glass mb-4">
