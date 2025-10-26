@@ -64,6 +64,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return reducirNumero(suma);
   }
 
+  // 🔹 Normaliza texto: reemplaza acentos, diéresis y cedillas por su equivalente
+  function normalizarTexto(texto) {
+    return texto
+      .normalize("NFD") // separa caracteres base + diacríticos
+      .replace(/[\u0300-\u036f]/g, "") // elimina diacríticos (acentos, tildes, diéresis)
+      .replace(/ç/g, "c").replace(/Ç/g, "C") // cedillas
+      .replace(/ñ/g, "Ñ").replace(/Ñ/g, "Ñ") // normaliza ñ correctamente
+      .toUpperCase(); // mantiene mayúsculas uniformes
+  }
+
   function calcularParcialConsonantes(palabra) {
     let suma = 0;
     for (let letra of palabra) {
@@ -76,8 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Cálculo Base (1–18) — SIN CAMBIOS DE LÓGICA ===
   function calcularBase() {
-    const nombres = document.getElementById("nombres").value.trim().toUpperCase();
-    const apellidos = document.getElementById("apellidos").value.trim().toUpperCase();
+    const nombres = normalizarTexto(document.getElementById("nombres").value.trim());
+    const apellidos = normalizarTexto(document.getElementById("apellidos").value.trim());
     const nombreCompleto = `${nombres} ${apellidos}`;
     const palabras = nombreCompleto.split(/\s+/);
     const letrasSolo = nombreCompleto.replace(/[^A-ZÑ]/g, '');
@@ -296,8 +306,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const fechaNacimiento = document.getElementById("fechaNacimiento").value;
     const fechaEnCurso = new Date(document.getElementById("anioEnCurso").value);
     const anioEnCurso = fechaEnCurso.getFullYear();
-    const nombres = document.getElementById("nombres").value.trim().toUpperCase();
-    const apellidos = document.getElementById("apellidos").value.trim().toUpperCase();
+    const nombres = normalizarTexto(document.getElementById("nombres").value.trim());
+    const apellidos = normalizarTexto(document.getElementById("apellidos").value.trim());
     const nombreCompleto = `${nombres} ${apellidos}`;
 
     if (!fechaNacimiento || isNaN(anioEnCurso)) return;
@@ -433,7 +443,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const r28 = armonicoExtendido(dobleDigitoAnioNacimiento, anioEnCurso);
     // === Resultado 29 ===
-    // Regla: si (20 + últimosDos) > 78 → sumar dígito a dígito del número completo (anio + edad)
+    // Regla: si (primerosdos + últimosDos) > 78 → sumar dígito a dígito del número completo (anio + edad)
     // Ejemplo: 2025 + 31 = 2056 → 20 + 56 = 76 (ok)
     // Ejemplo: 2025 + 41 = 2066 → 20 + 66 = 86 (>78) → 2+0+6+6 = 14
     const suma29 = anioEnCurso + edadDespues;
@@ -462,8 +472,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // === Cálculo Abracadabra (32) ===
   function calcularAbracadabra() {
     // 1) Tomar el nombre y apellido sin espacios
-    const nombres = document.getElementById("nombres").value.trim().toUpperCase();
-    const apellidos = document.getElementById("apellidos").value.trim().toUpperCase();
+    const nombres = normalizarTexto(document.getElementById("nombres").value.trim());
+    const apellidos = normalizarTexto(document.getElementById("apellidos").value.trim());
     const nombreCompleto = (nombres + apellidos).replace(/[^A-ZÑ]/g, '');
 
     // 2) Primeras 9 letras (relleno con espacio si faltan)
@@ -488,13 +498,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const filas = [fila1];
 
     // === FILAS 2 → 9 ===
+    // En el Abracadabra siempre reducimos todo a un dígito (1–9), sin conservar maestros.
     // Cada fila tiene (fila anterior length - 1) celdas
     for (let f = 2; f <= 9; f++) {
       const filaAnterior = filas[f - 2]; // array de la fila anterior
       const filaActual = [];
 
       for (let c = 0; c < filaAnterior.length - 1; c++) {
-        const sumaReducida = reducirNumero(filaAnterior[c] + filaAnterior[c + 1]);
+        // const sumaReducida = reducirNumero(filaAnterior[c] + filaAnterior[c + 1]);
+        const suma = filaAnterior[c] + filaAnterior[c + 1];
+
+        // reducción estricta: sin preservar 11, 22 o 33
+        let sumaReducida = suma;
+        while (sumaReducida >= 10) {
+          sumaReducida = sumaReducida
+            .toString()
+            .split('')
+            .reduce((a, b) => a + parseInt(b), 0);
+        }
+
         filaActual.push(sumaReducida);
 
         // Pintamos el valor en la tabla
@@ -520,21 +542,124 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /*
-Resultado 1 -> Esencia Íntima        > Vocales por palabra → reducir → sumar dígitos → reducir total
-Resultado 2 -> Imagen                > Consonantes por palabra → reducir → sumar dígitos → reducir total
-Resultado 3 -> Sendero del Mundo     > (Vocales + Consonantes) por palabra → reducir → sumar dígitos → reducir total
-Resultado 4 -> Sendero Natal         > Reducir mes, día y año → sumar → reducir total
-Resultado 5 -> Potencial             > Sendero Natal + Sendero del Mundo → reducir
-Resultado 6 -> Ciclo de Letras       > Total de letras del nombre completo (sin espacios ni símbolos)
-Resultado 7 -> Clave Personal        > Según tabla fija: mes + día
-Resultado 8 -> Letra L.              > Posición alfabética de la primera letra del primer nombre
-Resultado 9 -> Regalo Divino         > Suma de los dos últimos dígitos del año → reducir (salvo 11, 22 o 33)
-Resultado 10 -> Etapas               >
-    Etapa 1: Se obtendrá sumando el més (etapa1_izq) + día (etapa1_centro) → reducir (salvo 11, 22 o 33)
-    Etapa 2: Se obtendrá sumando el día (etapa1_centro) + año (etapa1_der) → reducir (salvo 11, 22 o 33)
-    Etapa 3: Suma de Etapa 1 + Etapa 2 → reducir (salvo 11, 22 o 33)
-    Etapa 4: Se obtendrá sumando el més (etapa1_izq) + año (etapa1_der) → reducir (salvo 11, 22 o 33)
-Resultado 11 -> Ciclo de Vida        > Según edad: usa mes, día o año reducido según rango de edad
-Resultado 12 -> Karmas               > Detecta 13, 14, 16 o 19 en: esencia, nombres, sendero, verticales y potencial
-Resultado 13 -> Lecciones Kármicas   > Números del 1 al 9 que no aparecen en el nombre completo
+═══════════════════════════════════════════════════════════════════════════════
+RESUMEN DE CÁLCULOS NUMEROLÓGICOS (RESULTADOS 1–32)
+═══════════════════════════════════════════════════════════════════════════════
+
+Resultado 1 → Esencia Íntima  
+    Vocales por palabra → reducir → sumar todas → reducir total.
+
+Resultado 2 → Imagen  
+    Consonantes por palabra → reducir → sumar todas → reducir total.
+
+Resultado 3 → Sendero del Mundo  
+    (Vocales + Consonantes) por palabra → reducir → sumar todas → reducir total.
+
+Resultado 4 → Sendero Natal  
+    Reducir mes, día y año de nacimiento → sumar → reducir total.
+
+Resultado 5 → Potencial  
+    Sendero Natal + Sendero del Mundo → reducir.
+
+Resultado 6 → Ciclo de Letras  
+    Total de letras del nombre completo (sin espacios ni símbolos).
+
+Resultado 7 → Clave Personal  
+    Según tabla fija: combinación entre mes y día de nacimiento.
+
+Resultado 8 → Letra L.  
+    Posición alfabética de la primera letra del primer nombre.
+
+Resultado 9 → Regalo Divino  
+    Suma de los dos últimos dígitos del año de nacimiento → reducir  
+    (salvo que dé 11, 22 o 33).
+
+Resultado 10 → Etapas  
+    Etapa 1: mes + día → reducir (salvo 11, 22 o 33)  
+    Etapa 2: día + año → reducir (salvo 11, 22 o 33)  
+    Etapa 3: Etapa 1 + Etapa 2 → reducir (salvo 11, 22 o 33)  
+    Etapa 4: mes + año → reducir (salvo 11, 22 o 33)  
+    Además, se calculan las edades de transición entre etapas según el Sendero Natal.
+
+Resultado 11 → Ciclo de Vida  
+    Según edad actual:  
+      • 0–27 años (y 81–107): usa mes.  
+      • 28–54 años (y 108–134): usa día.  
+      • 55–80 años: usa año.  
+    (Si > 134 años, vuelve a mes y marca en rojo).
+
+Resultado 12 → Karmas  
+    Detecta los valores 13, 14, 16 o 19 en:  
+      esencia, vocales totales, sendero del mundo, parciales por palabra,  
+      sendero natal y potencial.
+
+Resultado 13 → Lecciones Kármicas  
+    Números del 1 al 9 que NO aparecen en el nombre completo.
+
+Resultado 14 → Doble Dígito (Vocales)  
+    Suma sin reducir de todas las vocales del nombre completo.
+
+Resultado 15 → Doble Dígito (Consonantes)  
+    Suma sin reducir de todas las consonantes.
+
+Resultado 16 → Doble Dígito (Total)  
+    Suma de los Resultados 14 + 15.
+
+Resultado 17 → Doble Dígito (Fecha)  
+    Suma dígito a dígito de día + mes + año de nacimiento (sin reducir).
+
+Resultado 18 → Arcano Natal  
+    Día + mes + año reducido a dos cifras (sin reducir final).
+
+───────────────────────────────────────────────────────────────────────────────
+
+Resultado 19 → Año Personal  
+    Mes reducido + día reducido + año en curso reducido → reducir final.  
+    (Mantiene 11 o 22 si aparecen).
+
+Resultado 20 → Dígito de Edad  
+    Se sumán los dígitos reducidos de la edad anterior y actual → reducir.  
+    Ejemplo: 39 (=3 + 9 = 12 → 3) + 40 (=4) = 7.
+
+Resultado 21 → Edad Actual  
+    Diferencia entre el año en curso y el año de nacimiento,  
+    considerando si ya cumplió años en el año en curso.
+
+Resultado 22 → Mes Personal  
+    Año Personal + mes actual → reducir (mantiene 11 o 22 si aparecen).
+
+Resultado 23 → Tránsito de Letra  
+    Se recorre el nombre completo y cada letra dura “valor alfabético” años.  
+    Según la edad actual, se determina qué letra rige el año en curso.
+
+───────────────────────────────────────────────────────────────────────────────
+
+Resultados 24–27 → Armónicos / Cuatrimestres (versión básica)  
+    24 → Año actual + doble dígito del año de nacimiento.  
+    25 → Año actual + edad actual.  
+    26 → Año actual + sendero natal.  
+    27 → Año actual + clave personal.  
+    Regla básica:  
+      • Si el resultado < 2000 → sumar dígitos directamente.  
+      • Si ≥ 2000 → tomar dos primeros + dos últimos reducidos.  
+      • Si da 11 o 22, se mantiene sin reducir.
+
+Resultados 28–31 → Armónicos / Cuatrimestres (versión extendida)  
+    Igual que los anteriores, pero sin reducir los dos últimos dígitos.  
+    Si el resultado > 78 → se suma dígito a dígito del número completo.
+
+      28 → Año actual + doble dígito del año de nacimiento.  
+      29 → Año actual + edad actual.  
+      30 → Año actual + sendero natal.  
+      31 → Año actual + clave personal.
+
+───────────────────────────────────────────────────────────────────────────────
+
+Resultado 32 → Abracadabra  
+    Pirámide numerológica de 9 filas:  
+      • Fila 1: primeras 9 letras del nombre completo → valores alfabéticos.  
+      • Filas 2–9: cada celda es la suma reducida de las dos superiores (1 a 9).  
+    Refleja la vibración progresiva del nombre en forma de triángulo.
+
+═══════════════════════════════════════════════════════════════════════════════
 */
