@@ -198,10 +198,10 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("etapa3").textContent = e3;
       document.getElementById("etapa4").textContent = e4;
 
-      const claveValor = parseInt(document.getElementById("clavePersonal").value);
+      const senderoNatal = parseInt(document.getElementById("senderoNatal").value);
       let edades;
-      if (!isNaN(claveValor)) {
-        const etapa1Fin = 36 - claveValor;
+      if (!isNaN(senderoNatal)) {
+        const etapa1Fin = 36 - senderoNatal;
         const etapa2Ini = etapa1Fin + 1;
         const etapa2Fin = etapa2Ini + 9;
         const etapa3Ini = etapa2Fin + 1;
@@ -337,16 +337,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 23: Tránsito de Letra
     const letrasSolo = nombreCompleto.replace(/[^A-ZÑ]/g, '');
-    const letrasArray = letrasSolo.split("");
-    let suma = 0, i = 0, letraActual = "";
-    while (suma < edadDespues && i < 1000) {
-      const letra = letrasArray[i % letrasArray.length];
-      const valor = alfabeto[letra] || 0;
-      suma += valor;
-      letraActual = letra;
-      i++;
+    if (letrasSolo.length > 0) {
+      let edad = edadDespues;
+      let acumulado = 0;
+      let letraActual = letrasSolo[0];
+
+      // Iteramos por letras sumando sus valores como duración de tránsito
+      for (let i = 0; i < 500; i++) {
+        const letra = letrasSolo[i % letrasSolo.length];
+        const valor = alfabeto[letra] || 0;
+        if (valor === 0) continue;
+
+        const siguienteAcumulado = acumulado + valor;
+        if (edad >= acumulado && edad < siguienteAcumulado) {
+          letraActual = letra;
+          break;
+        }
+        acumulado = siguienteAcumulado;
+      }
+
+      document.getElementById("transitoLetra").value = letraActual;
+    } else {
+      document.getElementById("transitoLetra").value = "—";
     }
-    document.getElementById("transitoLetra").value = letraActual;
 
     // 24–31: Armónicos / Cuatrimestres
     const reducirADigito = (n) => {
@@ -419,15 +432,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const r27 = armonicoBasico(clavePersonalRaw, anioEnCurso);
 
     const r28 = armonicoExtendido(dobleDigitoAnioNacimiento, anioEnCurso);
-    // const r29 = armonicoExtendido(edadDespues, anioEnCurso);
+    // === Resultado 29 ===
+    // Regla: si (20 + últimosDos) > 78 → sumar dígito a dígito del número completo (anio + edad)
+    // Ejemplo: 2025 + 31 = 2056 → 20 + 56 = 76 (ok)
+    // Ejemplo: 2025 + 41 = 2066 → 20 + 66 = 86 (>78) → 2+0+6+6 = 14
+    const suma29 = anioEnCurso + edadDespues;
+    const primerosDos29 = parseInt(suma29.toString().slice(0, 2));
+    const ultimosDos29  = parseInt(suma29.toString().slice(2));
+    let total29 = primerosDos29 + ultimosDos29;
+    if (total29 > 78) {
+      total29 = suma29.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+    }
+    const r29 = total29;
     const r30 = armonicoExtendido(senderoNatalRaw, anioEnCurso);
     const r31 = armonicoExtendido(clavePersonalRaw, anioEnCurso);
-    
-    // ➕ USO sugerido en calcularPredictiva:
-    // const r28 = armonicoExtendido(dobleDigitoAnioNacimiento, anioEnCurso, true);
-    const r29 = armonicoExtendido28(edadDespues, anioEnCurso, true); // ← sin reducción
-    // const r30 = armonicoExtendido(senderoNatalRaw, anioEnCurso, true);
-    // const r31 = armonicoExtendido(clavePersonalRaw, anioEnCurso, true);
 
     // Pintamos SOLO en los spans existentes (coinciden con tu HTML)
     document.getElementById("resultado24").textContent = r24;
