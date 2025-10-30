@@ -331,4 +331,80 @@
   background: rgba(255,255,255,0.04);
   transition: background 0.25s ease, color 0.25s ease;
 }
-#abracada
+/* ════════════════════════════════════════════════
+   ✦ ABRACADABRA – versión estable Bootstrap friendly
+   Mantiene proporciones, centra todo, y conserva la columna izquierda visible
+═════════════════════════════════════════════════ */
+
+.abracadabra-table {
+  width: 100%;               /* se expande hasta el borde del contenedor */
+  max-width: 1200px;         /* límite elegante */
+  margin: 0 auto;
+  table-layout: auto;        /* deja que las celdas se achiquen */
+}
+
+#abracadabra .table-responsive {
+  overflow-x: auto;
+  display: block;
+  padding: 0.5rem 0;
+}
+
+/* Columna izquierda: rango de edades */
+#abracadabra td.text-end {
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--bg-soft);
+  border-right: 1px solid var(--card-border);
+}
+
+/* Columna derecha: suma */
+#abracadabra td.text-start {
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--accent-2);
+  background: var(--bg-soft);
+  border-left: 1px solid var(--card-border);
+}
+
+/* Centrado y proporciones uniformes */
+#abracadabra th,
+#abracadabra td {
+  text-align: center;
+  vertical-align: middle;
+  font-family: monospace;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.45rem;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+/* Hover leve para las celdas numéricas */
+#abracadabra td span[id^="r"] {
+  display: inline-block;
+  padding: 0.15rem 0.3rem;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  transition: background 0.25s ease;
+}
+#abracadabra td span[id^="r"]:hover {
+  background: rgba(124,77,255,0.15);
+}
+
+/* Responsividad progresiva */
+@media (max-width: 992px) {
+  #abracadabra th, #abracadabra td {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.35rem;
+  }
+}
+@media (max-width: 768px) {
+  #abracadabra th strong { display: none; } /* oculta edades medias */
+}
+@media (max-width: 576px) {
+  #abracadabra th, #abracadabra td {
+    font-size: 0.75rem;
+    padding: 0.2rem;
+  }
+}
+
