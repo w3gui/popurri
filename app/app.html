@@ -47,6 +47,70 @@
       </div>
     </div>
     <h2 class="mb-4 text-center">Calculadora</h2>
+    <!-- BLOQUE INICIAL DIVIDIDO EN DOS COLUMNAS -->
+    <section class="row g-4 mb-4 align-items-start">
+      <!-- COLUMNA IZQUIERDA: DATOS PERSONALES + BOTÓN -->
+      <div class="col-lg-6">
+        <div class="card glass h-100">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">Datos Personales</h5>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label for="nombres" class="form-label">Nombres</label>
+                <input type="text" class="form-control form-control-neo" id="nombres" />
+              </div>
+              <div class="col-md-12">
+                <label for="apellidos" class="form-label">Apellidos</label>
+                <input type="text" class="form-control form-control-neo" id="apellidos" />
+              </div>
+              <div class="col-md-12">
+                <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+                <input type="date" class="form-control form-control-neo" id="fechaNacimiento" />
+              </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">6. Ciclo de Letras</label>
+                <input type="text" id="cicloLetras" class="form-control form-control-neo text-center" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">7. Clave Personal</label>
+                <input type="text" id="clavePersonal" class="form-control form-control-neo text-center" readonly />
+              </div>
+          </div>
+        </div>
+      </div>
+      <!-- COLUMNA DERECHA: RESULTADOS BÁSICOS -->
+      <div class="col-lg-6">
+        <div class="card glass h-100">
+          <div class="card-body">
+            <h5 class="card-title mb-3 text-center">Numerología Base</h5>
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label">1. Esencia Íntima</label>
+                <input type="text" id="esenciaIntima" class="form-control form-control-neo text-center" readonly />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">2. Imagen</label>
+                <input type="text" id="imagen" class="form-control form-control-neo text-center" readonly />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">3. Sendero del Mundo</label>
+                <input type="text" id="serMundo" class="form-control form-control-neo text-center" readonly />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">4. Sendero Natal</label>
+                <input type="text" id="senderoNatal" class="form-control form-control-neo text-center" readonly />
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">5. Potencial</label>
+                <input type="text" id="potencial" class="form-control form-control-neo text-center" readonly />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CARD: Datos personales -->
     <section class="card glass mb-4">
       <div class="card-body">
@@ -244,6 +308,10 @@
           <div class="d-flex align-items-center gap-2">
             <label for="anioEnCurso" class="form-label mb-0">Año en curso</label>
             <input type="date" class="form-control form-control-neo w-auto text-center" id="anioEnCurso" value="2025-09-14" />
+            <script>
+                 const hoyLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+                 document.getElementById("anioEnCurso").value = hoyLocal;
+            </script>
             <button class="btn btn-gradient" id="btnCalcularPredictiva" title="Recalcular 19–31">Calcular</button>
             <!-- <button class="btn btn-outline-light btn-pill" id="btnCalcularPredictiva" title="Recalcular 19–31">Calcular</button> -->
           </div>
@@ -315,9 +383,8 @@
     <section class="card glass mb-5" id="abracadabra">
       <div class="text-center my-4">
         <h5 class="card-title mb-3" id="tituloAbracadabra">ABRACADABRA</h5>
-
-        <div class="table-responsive d-flex justify-content-center">
-          <table class="table table-borderless text-center align-middle w-auto mx-auto">
+        <div class="table-responsive"> <!-- <div class="table-responsive d-flex justify-content-center"> -->
+          <table class="table table-borderless text-center align-middle abracadabra-table"> <!-- <table class="table table-borderless text-center align-middle w-auto mx-auto"> -->
             <thead>
               <!-- Fila 1: edades medias -->
               <tr class="align-middle">

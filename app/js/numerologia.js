@@ -1,4 +1,66 @@
 // numerologia.js
+// === ATAJOS DE TECLADO ===
+
+//  TODO FALTA RESOLVER EL RPOBLEMA DE: que si algo tiene capturado el mouse no funciona el atajo y si agregar el alt+z para limpiar todos los inputs y resultados y volver al "nombre" para completar luego
+/*
+document.addEventListener("keydown", (e) => {
+  // Ignorar si el usuario está escribiendo en un input o textarea
+  const activo = document.activeElement.tagName.toLowerCase();
+  if (activo === "input" || activo === "textarea") return;
+
+  // Verificamos si se presiona ALT
+  if (e.altKey) {
+    switch (e.key.toLowerCase()) {
+      case "c":
+        e.preventDefault();
+        document.getElementById("btnCalcular")?.click();
+        mostrarToast("🔮 Cálculo completo ejecutado (Alt + C)");
+        break;
+
+      case "p":
+        e.preventDefault();
+        document.getElementById("btnCalcularPredictiva")?.click();
+        mostrarToast("📆 Cálculo predictivo ejecutado (Alt + P)");
+        break;
+
+      case "l":
+        e.preventDefault();
+        document.getElementById("btnLogout")?.click();
+        mostrarToast("🚪 Sesión cerrada (Alt + L)");
+        break;
+
+      case "m":
+        e.preventDefault();
+        document.getElementById("toggleModo")?.click();
+        mostrarToast("🌗 Modo visual cambiado (Alt + M)");
+        break;
+
+      default:
+        break;
+    }
+  }
+});
+
+// Pequeño aviso visual opcional (tipo "toast")
+function mostrarToast(mensaje) {
+  const aviso = document.createElement("div");
+  aviso.textContent = mensaje;
+  aviso.style.position = "fixed";
+  aviso.style.bottom = "20px";
+  aviso.style.right = "20px";
+  aviso.style.background = "rgba(0,0,0,0.75)";
+  aviso.style.color = "white";
+  aviso.style.padding = "8px 12px";
+  aviso.style.borderRadius = "8px";
+  aviso.style.fontSize = "0.9rem";
+  aviso.style.zIndex = 3000;
+  aviso.style.transition = "opacity 0.4s ease";
+  document.body.appendChild(aviso);
+  setTimeout(() => (aviso.style.opacity = "0"), 1800);
+  setTimeout(() => aviso.remove(), 2200);
+}
+*/
+
 // === LOGIN SIMPLE LOCAL ===
 const overlay = document.getElementById("login-overlay");
 const btnLogin = document.getElementById("btnLogin");
@@ -63,10 +125,10 @@ document.getElementById("btnLogout")?.addEventListener("click", () => {
 document.addEventListener("DOMContentLoaded", () => {
   // establece en numerologia predictiva la fecha de hoy + 1 año
   const inputAnioEnCurso = document.getElementById("anioEnCurso");
-  const hoy = new Date();
-  const dentroDeUnAnio = new Date(hoy.getFullYear() + 1, hoy.getMonth(), hoy.getDate());
-  const iso = dentroDeUnAnio.toISOString().split('T')[0]; // formato YYYY-MM-DD
-  inputAnioEnCurso.value = iso;
+  // const hoy = new Date();
+  // const añopredictivo = new Date(hoy.getFullYear() + 0, hoy.getMonth(), hoy.getDate());
+  // const iso = añopredictivo.toISOString().split('T')[0]; // formato YYYY-MM-DD
+  // inputAnioEnCurso.value = iso;
   
   
   // Cambia el tema entre claro y oscuro
