@@ -169,10 +169,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Utilidades ===
   function reducirNumero(n) {
+    n = parseInt(n, 10); // fuerza conversión a número entero
     if ([11, 22, 33].includes(n)) return n;
     let suma = n;
     while (suma >= 10) {
-      suma = suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+      suma = suma.toString().split('').reduce((a, b) => a + parseInt(b, 10), 0);
       if ([11, 22, 33].includes(suma)) break;
     }
     return suma;
@@ -435,6 +436,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!fechaNacimiento || isNaN(anioEnCurso)) return;
 
     const [anioNac, mesNac, diaNac] = fechaNacimiento.split("-").map(Number);
+    // 🔹 Reducir correctamente el mes de nacimiento según reglas numerológicas
+    /*
+    let mesReducido;
+    if (mesNac === 11) {
+      mesReducido = 11; // número maestro
+    } else if (mesNac === 12) {
+      mesReducido = 3;  // 1 + 2 = 3
+    } else {
+      mesReducido = reducirNumero(mesNac); // meses 1–10 → reducción normal
+    }
+    */
     const mesReducido = reducirNumero(mesNac);
     const diaReducido = reducirNumero(diaNac);
     const anioReducido = reducirNumero(anioEnCurso.toString().split('').reduce((a, b) => a + parseInt(b), 0));
