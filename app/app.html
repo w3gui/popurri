@@ -69,13 +69,13 @@
               </div>
             </div>
             <div class="col-md-6">
-                <label class="form-label">6. Ciclo de Letras</label>
-                <input type="text" id="cicloLetras" class="form-control form-control-neo text-center" readonly />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">7. Clave Personal</label>
-                <input type="text" id="clavePersonal" class="form-control form-control-neo text-center" readonly />
-              </div>
+              <label class="form-label">6. Ciclo de Letras</label>
+              <input type="text" id="cicloLetras" class="form-control form-control-neo text-center" readonly />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">7. Clave Personal</label>
+              <input type="text" id="clavePersonal" class="form-control form-control-neo text-center" readonly />
+            </div>
           </div>
         </div>
       </div>
@@ -97,14 +97,18 @@
                 <label class="form-label">3. Sendero del Mundo</label>
                 <input type="text" id="serMundo" class="form-control form-control-neo text-center" readonly />
               </div>
-              <div class="col-md-12">
-                <label class="form-label">4. Sendero Natal</label>
-                <input type="text" id="senderoNatal" class="form-control form-control-neo text-center" readonly />
-              </div>
-              <div class="col-md-12">
-                <label class="form-label">5. Potencial</label>
-                <input type="text" id="potencial" class="form-control form-control-neo text-center" readonly />
-              </div>
+            </div>
+            <div class="col-md-12">
+              <label class="form-label">Karma</label>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">4. Sendero Natal</label>
+              <input type="text" id="senderoNatal" class="form-control form-control-neo text-center" readonly />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">5. Potencial</label>
+              <input type="text" id="potencial" class="form-control form-control-neo text-center" readonly />
+            </div>
             </div>
           </div>
         </div>
@@ -324,7 +328,12 @@
         <div class="row g-3">
           <div class="col-md-4">
             <label for="anioPersonal" class="form-label">19. Año Personal</label>
-            <input type="text" id="anioPersonal" class="form-control form-control-neo text-center" readonly />
+            <div class="inline-duo">
+              <input type="text" id="labelanioPersonal" readonly />
+              <input type="text" id="anioPersonal" class="form-control-neo" readonly />
+              <!-- <input type="text" id="labelanioPersonal" class="form-control text-center mb-1" style="background: transparent; border: 1px dashed rgba(255,255,255,0.3); font-style: italic;" readonly /> -->
+              <!-- <input type="text" id="anioPersonal" class="form-control form-control-neo text-center  fw-bold" readonly /> -->
+          </div>
           </div>
           <div class="col-md-4">
             <label id="digitoEdadTexto" for="digitoEdad" class="form-label">20. Dígito de Edad</label>

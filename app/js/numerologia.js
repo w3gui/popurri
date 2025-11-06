@@ -169,11 +169,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // === Utilidades ===
   function reducirNumero(n) {
-    n = parseInt(n, 10); // fuerza conversión a número entero
     if ([11, 22, 33].includes(n)) return n;
     let suma = n;
     while (suma >= 10) {
-      suma = suma.toString().split('').reduce((a, b) => a + parseInt(b, 10), 0);
+      suma = suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
       if ([11, 22, 33].includes(suma)) break;
     }
     return suma;
@@ -206,6 +205,152 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return reducirNumero(suma);
   }
+  // === FUNCIÓN: Generar tabla base kármica dinámica con tooltips ===
+  function generarTablaBaseKarmica(nombres, apellidos, parcialesVocales, parcialesConsonantes, parcialesMundo, esenciaIntima, imagen, senderoMundo) {
+    const karmasPosibles = [13, 14, 16, 19];
+    const palabrasTotales = [...nombres.split(/\s+/), ...apellidos.split(/\s+/)].filter(p => p);
+    const numCols = palabrasTotales.length;
+
+    // === 1. Calcular Sendero del Mundo (columna a columna)
+    const parcialesMundoReales = parcialesVocales.map((v, i) => {
+      const c = parcialesConsonantes[i] ?? 0;
+      const suma = v + c;
+      return [11, 22, 33].includes(suma) ? suma : reducirNumero(suma);
+    });
+
+    // === 2. Crear filas
+    const filas = [
+      { nombre: "Esencia Íntima", valores: parcialesVocales, total: esenciaIntima, karma: "" },
+      { nombre: "Imagen", valores: parcialesConsonantes, total: imagen, karma: "" },
+      { nombre: "Sendero del Mundo", valores: parcialesMundoReales, total: senderoMundo, karma: "" }
+    ];
+
+    // === 3. Inicializar matrices ===
+    const karmasH = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
+    const karmasV = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
+
+    // === 4. Detección horizontal (todas las filas, incluyendo Esencia)
+    filas.forEach((fila) => {
+      for (let j = 0; j < fila.valores.length - 1; j++) {
+        const a = fila.valores[j];
+        const b = fila.valores[j + 1];
+        if (a != null && b != null) {
+          // Regla: el 10 cuenta como 1 solo horizontalmente
+          const aEval = [11, 22, 33].includes(a) ? a : (a === 10 ? 1 : a);
+          const bEval = [11, 22, 33].includes(b) ? b : (b === 10 ? 1 : b);
+          const suma = aEval + bEval;
+
+          if (karmasPosibles.includes(suma)) {
+            karmasH[filas.indexOf(fila)][j] = karmasH[filas.indexOf(fila)][j + 1] = true;
+            fila.karma = "k";
+          }
+        }
+      }
+    });
+
+    // === 5. Detección vertical acumulativa (columna por columna y mantiene 10 tal cual sin reducir a 1)
+    const columnasKarma = Array(numCols).fill(false);
+    for (let c = 0; c < numCols; c++) {
+      let acumulado = 0;
+
+      for (let r = 0; r < filas.length; r++) {
+        const val = filas[r].valores[c];
+        if (val == null) continue;
+
+        acumulado += (val === 10 ? 10 : val);
+
+        // Si la suma acumulada da un karma (13, 14, 16, 19) lo marcamos, pero seguimos sumando
+        if (karmasPosibles.includes(acumulado)) {
+          karmasV[r][c] = true;
+          columnasKarma[c] = true;
+        }
+      }
+    }
+
+
+    // === 5.5 Detección de karma en el total de cada fila ===
+    filas.forEach(fila => {
+      // volver a sumar todos los valores sin reducir
+      let sumaBruta = 0;
+      fila.valores.forEach(v => {
+        if (v != null) {
+          sumaBruta += v === 10 ? 10 : v; // mantiene el 10 real
+        }
+      });
+      if (karmasPosibles.includes(sumaBruta)) {
+        fila.karma = "k";
+      }
+    });
+
+    // === 6. Detectar qué columnas tienen karma vertical
+    for (let c = 0; c < numCols; c++) {
+      for (let r = 0; r < filas.length; r++) {
+        if (karmasV[r][c]) {
+          // columnasKarma[c] = true;
+          break;
+        }
+      }
+    }
+
+    // === 7. Render tabla ===
+    let html = `
+      <div class="table-responsive mt-3">
+        <table class="table table-glass text-center align-middle">
+          <thead>
+            <tr>
+              <th>Resultado</th>
+              ${palabrasTotales.map(p => `<th>${p}</th>`).join("")}
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    filas.forEach((fila, i) => {
+      html += `<tr><th>${fila.nombre}</th>`;
+      for (let j = 0; j < numCols; j++) {
+        let val = fila.valores[j];
+        const isKarma = karmasH[i][j] || karmasV[i][j];
+
+        // 🔹 Visualización especial del 10: se mantiene 10 en pantalla aunque sea 1 internamente
+        let displayVal = (val === 1 && fila.nombre === "Imagen") ? "10" : val;
+
+        // 🔹 Además, si venía reducido a 1 por error pero en parciales crudos era 10, se fuerza 10
+        // (opcional: si en el futuro almacenás parcialesRaw, se puede comparar con eso)
+
+        const style = isKarma ? 'style="color:#ff5e5e;font-weight:700;"' : "";
+        html += `<td ${style}>${displayVal ?? ""}</td>`;
+      }
+
+      html += `<td>${fila.total ?? ""}${fila.karma ? "<span style='color:red;'>,k</span>" : ""}</td></tr>`;
+    });
+
+
+    // === 8. Fila inferior (K de columnas)
+    html += `<tr><td></td>`;
+    for (let j = 0; j < numCols; j++) {
+      html += `<td>${columnasKarma[j] ? "<span style='color:red;font-weight:700;'>k</span>" : ""}</td>`;
+    }
+    html += `<td></td></tr>`;
+
+    html += `
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    // === 9. Insertar/actualizar ===
+    let tablaDiv = document.getElementById("tablaBaseKarma");
+    if (!tablaDiv) {
+      tablaDiv = document.createElement("div");
+      tablaDiv.id = "tablaBaseKarma";
+      const card = [...document.querySelectorAll(".card-title")].find(el => el.textContent.includes("Numerología Base"));
+      if (card) card.parentElement.appendChild(tablaDiv);
+      else document.body.appendChild(tablaDiv);
+    }
+    tablaDiv.innerHTML = html;
+  }
+
 
   // === Cálculo Base (1–18) — SIN CAMBIOS DE LÓGICA ===
   function calcularBase() {
@@ -258,6 +403,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const senderoMundo = reducirNumero(sumaFinalMundo);
     document.getElementById("serMundo").value = senderoMundo;
+    // === Generar tabla dinámica base kármica ===
+    generarTablaBaseKarmica(
+      nombres,
+      apellidos,
+      parcialesVocales,
+      parcialesConsonantes,
+      parcialesMundo,
+      esenciaIntima,
+      imagen,
+      senderoMundo
+    );
 
     // 4. Sendero Natal
     let senderoNatal = "";
@@ -436,25 +592,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!fechaNacimiento || isNaN(anioEnCurso)) return;
 
     const [anioNac, mesNac, diaNac] = fechaNacimiento.split("-").map(Number);
-    // 🔹 Reducir correctamente el mes de nacimiento según reglas numerológicas
-    /*
-    let mesReducido;
-    if (mesNac === 11) {
-      mesReducido = 11; // número maestro
-    } else if (mesNac === 12) {
-      mesReducido = 3;  // 1 + 2 = 3
-    } else {
-      mesReducido = reducirNumero(mesNac); // meses 1–10 → reducción normal
-    }
-    */
     const mesReducido = reducirNumero(mesNac);
     const diaReducido = reducirNumero(diaNac);
     const anioReducido = reducirNumero(anioEnCurso.toString().split('').reduce((a, b) => a + parseInt(b), 0));
-
     // 19: Año Personal
     const sumaAP = mesReducido + diaReducido + anioReducido;
     const anioPersonal = [11, 22, 33].includes(sumaAP) ? sumaAP : reducirNumero(sumaAP);
+    // Mostramos ambos campos: la cuenta y el resultado final
+    document.getElementById("labelanioPersonal").value = `${diaReducido} + ${mesReducido} + ${anioReducido}`; //  = ${sumaAP}`;
     document.getElementById("anioPersonal").value = anioPersonal;
+
+
 
     // 20: Dígito de Edad
     const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);

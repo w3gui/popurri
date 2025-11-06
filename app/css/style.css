@@ -408,3 +408,88 @@
   }
 }
 
+
+/* ════════════════════════════════════════════════
+   ✦ Inputs dobles en línea (label + resultado)
+   ✦ Compatibles con form-control-neo y modo claro/oscuro
+═════════════════════════════════════════════════ */
+
+.inline-duo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-duo input:first-child {
+  flex: 1;
+  background: transparent;
+  border: 1px dashed var(--card-border);
+  color: var(--muted);
+  font-style: italic;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.inline-duo input:last-child {
+  flex: 0 0 80px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  transition: all 0.25s ease;
+}
+
+.inline-duo input:last-child:focus {
+  outline: none;
+  transform: scale(1.03);
+}
+
+/* Tema claro: mantener contraste equilibrado */
+.app-body:not(.dark-mode) .inline-duo input:first-child {
+  border-color: rgba(60,60,60,0.25);
+  color: var(--muted);
+}
+.app-body:not(.dark-mode) .inline-duo input:last-child {
+  background: #fff;
+  border-color: rgba(60,60,60,0.25);
+}
+
+/* ════════════════════════════════════════════════
+   ✦ Corrección de layout: evita que los inline-duo
+     se salgan o se solapen en grids de 3 columnas
+═════════════════════════════════════════════════ */
+.inline-duo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-width: 0;             /* permite que se adapte dentro del col */
+}
+
+.inline-duo input:first-child {
+  flex: 1 1 auto;           /* que se reduzca si no hay espacio */
+  min-width: 0;             /* evita overflow horizontal */
+}
+
+.inline-duo input:last-child {
+  flex: 0 0 70px;           /* resultado compacto fijo */
+  min-width: 70px;
+}
+
+/* En pantallas pequeñas (tablets y móviles),
+   forzamos los inputs a apilarse verticalmente */
+@media (max-width: 992px) {
+  .inline-duo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .inline-duo input:last-child {
+    flex: 1 1 auto;
+    width: 100%;
+    margin-top: 4px;
+  }
+}
