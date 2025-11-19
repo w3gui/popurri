@@ -351,6 +351,63 @@ document.addEventListener("DOMContentLoaded", () => {
     tablaDiv.innerHTML = html;
   }
 
+  function actualizarCabecerasCuatrimestres(fechaNacimiento) {
+    const h1 = document.getElementById("cuatri1-header");
+    const h2 = document.getElementById("cuatri2-header");
+    const h3 = document.getElementById("cuatri3-header");
+
+    if (!h1 || !h2 || !h3) return;
+
+    // Si no hay fecha, dejamos los textos por defecto
+    if (!fechaNacimiento) {
+      h1.textContent = "1º Cuatri";
+      h2.textContent = "2º Cuatri";
+      h3.textContent = "3º Cuatri";
+      return;
+    }
+
+    const partes = fechaNacimiento.split("-");
+    if (partes.length !== 3) {
+      h1.textContent = "1º Cuatri";
+      h2.textContent = "2º Cuatri";
+      h3.textContent = "3º Cuatri";
+      return;
+    }
+
+    const mesNac = parseInt(partes[1], 10);
+    if (isNaN(mesNac) || mesNac < 1 || mesNac > 12) {
+      h1.textContent = "1º Cuatri";
+      h2.textContent = "2º Cuatri";
+      h3.textContent = "3º Cuatri";
+      return;
+    }
+
+    const meses = [
+      "Enero", "Febrero", "Marzo", "Abril",
+      "Mayo", "Junio", "Julio", "Agosto",
+      "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
+    // mesInicio viene en 1–12
+    function rangoCuatrimestre(mesInicio) {
+      const idxInicio = (mesInicio - 1) % 12;
+      const idxFin    = (mesInicio - 1 + 3) % 12; // 4 meses: inicio, +1, +2, +3
+      const desde = meses[idxInicio];
+      const hasta = meses[idxFin];
+      return `${desde} – ${hasta}`;
+    }
+
+    // 1er cuatri: desde mes de nacimiento
+    const mes1 = mesNac;
+    // 2º cuatri: 4 meses después
+    const mes2 = ((mesNac - 1 + 4) % 12) + 1;
+    // 3º cuatri: 8 meses después
+    const mes3 = ((mesNac - 1 + 8) % 12) + 1;
+
+    h1.textContent = rangoCuatrimestre(mes1);
+    h2.textContent = rangoCuatrimestre(mes2);
+    h3.textContent = rangoCuatrimestre(mes3);
+  }
 
   // === Cálculo Base (1–18) — SIN CAMBIOS DE LÓGICA ===
   function calcularBase() {
@@ -373,6 +430,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const esenciaIntima = reducirNumero(sumaVocales);
     document.getElementById("esenciaIntima").value = esenciaIntima;
+    const detalleEsencia = document.getElementById("esenciaIntimaDetalle");
+    if (detalleEsencia && sumaVocales) {
+      detalleEsencia.innerHTML = `
+        <span class="num-crudo">${sumaVocales}</span>
+        <span class="text-muted">/</span>
+        <span class="num-principal">${esenciaIntima}</span>
+      `;
+    } else if (detalleEsencia) {
+      detalleEsencia.innerHTML = "";
+    }
+
 
     // 2. Imagen
     const parcialesConsonantes = palabras.map(p => calcularParcialConsonantes(p));
@@ -386,6 +454,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const imagen = reducirNumero(sumaConsonantes);
     document.getElementById("imagen").value = imagen;
+    const detalleImagen = document.getElementById("imagenDetalle");
+    if (detalleImagen && sumaConsonantes) {
+      detalleImagen.innerHTML = `
+        <span class="num-crudo">${sumaConsonantes}</span>
+        <span class="text-muted">/</span>
+        <span class="num-principal">${imagen}</span>
+      `;
+    } else if (detalleImagen) {
+      detalleImagen.innerHTML = "";
+    }
+
 
     // 3. Sendero del Mundo
     const parcialesMundo = palabras.map(p => {
@@ -403,6 +482,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const senderoMundo = reducirNumero(sumaFinalMundo);
     document.getElementById("serMundo").value = senderoMundo;
+    const detalleMundo = document.getElementById("serMundoDetalle");
+    if (detalleMundo && sumaFinalMundo) {
+      detalleMundo.innerHTML = `
+        <span class="num-crudo">${sumaFinalMundo}</span>
+        <span class="text-muted">/</span>
+        <span class="num-principal">${senderoMundo}</span>
+      `;
+    } else if (detalleMundo) {
+      detalleMundo.innerHTML = "";
+    }
+
     // === Generar tabla dinámica base kármica ===
     generarTablaBaseKarmica(
       nombres,
@@ -417,26 +507,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 4. Sendero Natal
     let senderoNatal = "";
+    let SumaSenderoNatal = 0;
     if (fechaNacimiento) {
       const [anio, mes, dia] = fechaNacimiento.split("-").map(Number);
       const reducirFecha = (valor) => {
-        if ([11, 22, 33].includes(valor)) return valor;
+        if ([11, 22].includes(valor)) return valor;
         if (valor === 29) return 11;
         return reducirNumero(valor);
       };
       const mesR = reducirFecha(mes);
       const diaR = reducirFecha(dia);
       const anioR = reducirFecha(anio.toString().split('').reduce((a, b) => a + parseInt(b), 0));
-      senderoNatal = reducirNumero(mesR + diaR + anioR);
+      SumaSenderoNatal = mesR + diaR + anioR;
+      senderoNatal = (SumaSenderoNatal === 33) ? 6 : reducirNumero(SumaSenderoNatal);
     }
     document.getElementById("senderoNatal").value = senderoNatal;
 
+    const detalleSN = document.getElementById("senderoNatalDetalle");
+    if (detalleSN && SumaSenderoNatal) {
+      detalleSN.innerHTML = `
+        <span class="num-crudo">${SumaSenderoNatal}</span>
+        <span class="text-muted">/</span>
+        <span class="num-principal">${senderoNatal}</span>
+      `;
+    } else if (detalleSN) {
+      detalleSN.innerHTML = "";
+    }
+
     // 5. Potencial
     let potencial = "";
+    let potencialRaw = null;
     if (!isNaN(senderoMundo) && !isNaN(senderoNatal)) {
-      potencial = reducirNumero(senderoMundo + senderoNatal);
+      potencialRaw = senderoMundo + senderoNatal;
+      potencial = reducirNumero(potencialRaw);
     }
     document.getElementById("potencial").value = potencial;
+    
+    const detallePot = document.getElementById("potencialDetalle");
+    if (detallePot && potencialRaw !== null) {
+      detallePot.innerHTML = `
+        <span class="num-crudo">${potencialRaw}</span>
+        <span class="text-muted">/</span>
+        <span class="num-principal">${potencial}</span>
+      `;
+    } else if (detallePot) {
+      detallePot.innerHTML = "";
+    }
 
     // 6. Ciclo de Letras
     document.getElementById("cicloLetras").value = letrasSolo.length;
@@ -588,6 +704,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const nombres = normalizarTexto(document.getElementById("nombres").value.trim());
     const apellidos = normalizarTexto(document.getElementById("apellidos").value.trim());
     const nombreCompleto = `${nombres} ${apellidos}`;
+    // Actualizar cabeceras de cuatrimestres según la fecha de nacimiento
+    actualizarCabecerasCuatrimestres(fechaNacimiento);
 
     if (!fechaNacimiento || isNaN(anioEnCurso)) return;
 
@@ -623,8 +741,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 22: Mes Personal
     const mesHoy = new Date().getMonth() + 1;
-    const mesPersonalBase = anioPersonal + mesHoy;
-    const mesPersonal = [11, 22, 33].includes(mesPersonalBase) ? mesPersonalBase : reducirNumero(mesPersonalBase);
+    const mesactualReducido = reducirNumero(mesHoy);
+    const sumaMesPersonal = anioPersonal + mesactualReducido;
+    const mesPersonal = [11, 22, 33].includes(sumaMesPersonal) ? sumaMesPersonal : reducirNumero(sumaMesPersonal);
     document.getElementById("mesPersonal").value = mesPersonal;
 
     // 23: Tránsito de Letra
@@ -715,7 +834,25 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const dobleDigitoAnioNacimiento = fechaNacimiento ? fechaNacimiento.split("-")[0].split('').reduce((a, b) => a + parseInt(b), 0) : 0;
-    const senderoNatalRaw = fechaNacimiento ? (reducirNumero(mesNac) + reducirNumero(diaNac) + reducirNumero(anioNac.toString().split('').reduce((a, b) => a + parseInt(b), 0))) : 0;
+    // Recalcular Sendero Natal en Predictiva con la misma lógica que en Base (sin 33)
+    let senderoNatalRaw = 0;
+    if (fechaNacimiento) {
+      const reducirFechaSN = (valor) => {
+        if ([11, 22].includes(valor)) return valor; // mismos maestros que en Base
+        if (valor === 29) return 11;
+        return reducirNumero(valor);
+      };
+
+      const mesR_SN = reducirFechaSN(mesNac);
+      const diaR_SN = reducirFechaSN(diaNac);
+      const anioR_SN = reducirFechaSN(
+        anioNac.toString().split('').reduce((a, b) => a + parseInt(b), 0)
+      );
+
+      const sumaSNraw = mesR_SN + diaR_SN + anioR_SN;
+      senderoNatalRaw = (sumaSNraw === 33) ? 6 : reducirNumero(sumaSNraw);
+    }
+    // const senderoNatalRaw = fechaNacimiento ? (reducirNumero(mesNac) + reducirNumero(diaNac) + reducirNumero(anioNac.toString().split('').reduce((a, b) => a + parseInt(b), 0))) : 0;
     const clavePersonalRaw = parseInt(document.getElementById("clavePersonal").value);
 
     const r24 = armonicoBasico(dobleDigitoAnioNacimiento, anioEnCurso);
@@ -864,7 +1001,7 @@ Resultado 3 → Sendero del Mundo
     (Vocales + Consonantes) por palabra → reducir → sumar todas → reducir total.
 
 Resultado 4 → Sendero Natal  
-    Reducir mes, día y año de nacimiento → sumar → reducir total.
+    Reducir mes, día y año de nacimiento → sumar → reducir total. (no puede existir el 33)
 
 Resultado 5 → Potencial  
     Sendero Natal + Sendero del Mundo → reducir.
@@ -934,7 +1071,7 @@ Resultado 21 → Edad Actual
     considerando si ya cumplió años en el año en curso.
 
 Resultado 22 → Mes Personal  
-    Año Personal + mes actual → reducir (mantiene 11 o 22 si aparecen).
+    Año Personal + mes actual reducido → reducir (mantiene 11 o 22 si aparecen).
 
 Resultado 23 → Tránsito de Letra  
     Se recorre el nombre completo y cada letra dura “valor alfabético” años.  

@@ -493,3 +493,16 @@
     margin-top: 4px;
   }
 }
+
+.resultado-detalle {
+  font-size: 0.8rem;
+}
+
+.resultado-detalle .num-crudo {
+  opacity: 0.75;
+}
+
+.resultado-detalle .num-principal {
+  color: #4ade80; /* verde suave destacado */
+  font-weight: 600;
+}

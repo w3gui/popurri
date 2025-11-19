@@ -87,15 +87,18 @@
             <div class="row g-3">
               <div class="col-md-12">
                 <label class="form-label">1. Esencia Íntima</label>
-                <input type="text" id="esenciaIntima" class="form-control form-control-neo text-center" readonly />
+                <input type="text" id="esenciaIntima" class="form-control form-control-neo text-center w-auto" readonly />
+                <small id="esenciaIntimaDetalle" class="resultado-detalle d-block mt-1"></small>
               </div>
               <div class="col-md-12">
                 <label class="form-label">2. Imagen</label>
-                <input type="text" id="imagen" class="form-control form-control-neo text-center" readonly />
+                <input type="text" id="imagen" class="form-control form-control-neo text-center w-auto" readonly />
+                <small id="imagenDetalle" class="resultado-detalle d-block mt-1"></small>
               </div>
               <div class="col-md-12">
                 <label class="form-label">3. Sendero del Mundo</label>
-                <input type="text" id="serMundo" class="form-control form-control-neo text-center" readonly />
+                <input type="text" id="serMundo" class="form-control form-control-neo text-center w-auto" readonly />
+                <small id="serMundoDetalle" class="resultado-detalle d-block mt-1"></small>
               </div>
             </div>
             <div class="col-md-12">
@@ -103,11 +106,13 @@
             </div>
             <div class="col-md-6">
               <label class="form-label">4. Sendero Natal</label>
-              <input type="text" id="senderoNatal" class="form-control form-control-neo text-center" readonly />
+              <input type="text" id="senderoNatal" class="form-control form-control-neo text-center w-auto" readonly />
+              <small id="senderoNatalDetalle" class="resultado-detalle d-block mt-1"></small>
             </div>
             <div class="col-md-6">
               <label class="form-label">5. Potencial</label>
-              <input type="text" id="potencial" class="form-control form-control-neo text-center" readonly />
+              <input type="text" id="potencial" class="form-control form-control-neo text-center w-auto" readonly />
+              <small id="potencialDetalle" class="resultado-detalle d-block mt-1"></small>
             </div>
             </div>
           </div>
@@ -140,52 +145,6 @@
 
     <!-- GRID: Resultados 1–9 -->
     <section class="grid-cards mb-4">
-      <!-- TODO: BORRAR SI SE APRUEBAN LAS DOS COLUMNAS
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">1. Esencia Íntima</h6>
-          <input type="text" id="esenciaIntima" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">2. Imagen</h6>
-          <input type="text" id="imagen" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">3. Sendero del Mundo</h6>
-          <input type="text" id="serMundo" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">4. Sendero Natal</h6>
-          <input type="text" id="senderoNatal" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">5. Potencial</h6>
-          <input type="text" id="potencial" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">6. Ciclo de Letras</h6>
-          <input type="text" id="cicloLetras" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">7. Clave Personal</h6>
-          <input type="text" id="clavePersonal" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      --> 
       <div class="card glass">
         <div class="card-body">
           <h6 class="card-subtitle mb-2">8. Letra L.</h6>
@@ -205,12 +164,7 @@
       <div class="card-body">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
           <h5 class="card-title mb-0">10. Etapas</h5>
-          <div class="d-flex align-items-center gap-2">
-            <label class="form-label mb-0" for="duracionEtapas">Periodos (años)</label>
-            <input type="number" id="duracionEtapas" class="form-control form-control-neo w-auto text-center" min="1" />
-          </div>
         </div>
-
         <div class="row g-4">
           <div class="col-md-6">
             <div class="etapas-grid">
@@ -365,9 +319,9 @@
             <thead>
               <tr>
                 <th>Armónico</th>
-                <th>1º Cuatri</th>
-                <th>2º Cuatri</th>
-                <th>3º Cuatri</th>
+                <th id="cuatri1-header">1º Cuatri</th>
+                <th id="cuatri2-header">2º Cuatri</th>
+                <th id="cuatri3-header">3º Cuatri</th>
               </tr>
             </thead>
             <tbody>
