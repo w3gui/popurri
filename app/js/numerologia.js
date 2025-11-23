@@ -770,12 +770,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    // 20: Dígito de Edad (constante para TODO el año analizado)
-    const edadAntesAnual   = anioEnCurso - anioNac - 1;
-    const edadDespuesAnual = anioEnCurso - anioNac;
+    // 20: Dígito de Edad (depende de la fecha predictiva: antes/después del cumple)
+    const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
+    const yaCumplioEnFecha = fechaEnCurso >= cumpleEsteAnio;
 
-    const edad1 = reducirNumero(edadAntesAnual);
-    const edad2 = reducirNumero(edadDespuesAnual);
+    // edad actual en la fecha predictiva (igual que resultado 21)
+    const edadActual = anioEnCurso - anioNac - (yaCumplioEnFecha ? 0 : 1);
+
+    // Para el Dígito de Edad tomamos:
+    // - edadAntes: la edad vigente al inicio del ciclo (en la fecha elegida)
+    // - edadDespues: la edad después del próximo cumpleaños dentro de los próximos 12 meses
+    const edadAntes = edadActual;
+    const edadDespues = edadActual + 1;
+
+    const edad1 = reducirNumero(edadAntes);
+    const edad2 = reducirNumero(edadDespues);
     const sumaEdad = edad1 + edad2;
 
     const digitoEdad = [11, 22, 33].includes(sumaEdad)
@@ -784,13 +793,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("digitoEdad").value = digitoEdad;
     document.getElementById("digitoEdadTexto").textContent =
-      `20. Dígito de Edad ${edadAntesAnual} + ${edadDespuesAnual} →`;
+      `20. Dígito de Edad ${edadAntes} + ${edadDespues} →`;
 
     // 21: Edad actual (esta sí depende de la fecha elegida)
-    const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
-    const yaCumplioEnFecha = fechaEnCurso >= cumpleEsteAnio;
+    // const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
+    // const yaCumplioEnFecha = fechaEnCurso >= cumpleEsteAnio;
 
-    const edadActual = anioEnCurso - anioNac - (yaCumplioEnFecha ? 0 : 1);
+    // const edadActual = anioEnCurso - anioNac - (yaCumplioEnFecha ? 0 : 1);
     document.getElementById("edadActual").value = edadActual;
 
     // 20: Dígito de Edad
