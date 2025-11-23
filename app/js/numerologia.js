@@ -168,6 +168,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const vocalesSet = new Set(['A', 'E', 'I', 'O', 'U']);
 
   // === Utilidades ===
+  
+  // --- parciales RAW (sin reducir) ---
+  function parcialVocalesRaw(palabra) {
+    let suma = 0;
+    for (let letra of palabra) {
+      if (vocalesSet.has(letra)) suma += alfabeto[letra] || 0;
+    }
+    return suma; // sin reducir
+  }
+
+  function parcialConsonantesRaw(palabra) {
+    let suma = 0;
+    for (let letra of palabra) {
+      if (/[A-ZÑ]/.test(letra) && !vocalesSet.has(letra)) {
+        suma += alfabeto[letra] || 0;
+      }
+    }
+    return suma; // sin reducir
+  }
+
   function reducirNumero(n) {
     if ([11, 22, 33].includes(n)) return n;
     let suma = n;
@@ -423,7 +443,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let sumaVocales = 0;
     for (let parcial of parcialesVocales) {
       if ([11, 22, 33].includes(parcial)) {
-        sumaVocales += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
+        sumaVocales += parcial.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+        // sumaVocales += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
       } else {
         sumaVocales += parcial;
       }
@@ -447,7 +468,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let sumaConsonantes = 0;
     for (let parcial of parcialesConsonantes) {
       if ([11, 22, 33].includes(parcial)) {
-        sumaConsonantes += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
+        sumaConsonantes += parcial.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+        // sumaConsonantes += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
       } else {
         sumaConsonantes += parcial;
       }
@@ -475,7 +497,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let sumaFinalMundo = 0;
     for (let parcial of parcialesMundo) {
       if ([11, 22, 33].includes(parcial)) {
-        sumaFinalMundo += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
+        sumaFinalMundo += parcial.toString().split('').reduce((a, b) => a + parseInt(b), 0);
+        // sumaFinalMundo += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
       } else {
         sumaFinalMundo += parcial;
       }
@@ -645,21 +668,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 12. Karmas
+    // document.getElementById("karmas").value = [...karmasEncontrados].sort((a,b) => a-b).join(", ") || "—";
     const karmasPosibles = [13, 14, 16, 19];
     const karmasEncontrados = new Set();
     const revisarKarma = (v) => { if (karmasPosibles.includes(v)) karmasEncontrados.add(v); };
 
-    revisarKarma(sumaVocales);
-    const sumaVocalesRaw = palabras.reduce((total, p) => {
-      return total + [...p].reduce((suma, letra) => vocalesSet.has(letra) ? suma + (alfabeto[letra] || 0) : suma, 0);
-    }, 0);
-    revisarKarma(sumaVocalesRaw);
-    revisarKarma(sumaFinalMundo);
-    palabras.forEach(p => revisarKarma(calcularParcialVocales(p) + calcularParcialConsonantes(p)));
+    // --- parciales RAW por palabra ---
+    const parcialesVocalesRaw = palabras.map(p => parcialVocalesRaw(p));
+    const parcialesConsonantesRaw = palabras.map(p => parcialConsonantesRaw(p));
+    const parcialesMundoRaw = parcialesVocalesRaw.map((v, i) => v + (parcialesConsonantesRaw[i] || 0));
+
+    // --- totales RAW ---
+    // const sumaVocalesRaw = palabras.reduce((total, p) => {return total + [...p].reduce((suma, letra) => vocalesSet.has(letra) ? suma + (alfabeto[letra] || 0) : suma, 0);}, 0);
+    // revisarKarma(sumaVocalesRaw);
+    // revisarKarma(sumaFinalMundo);
+    // palabras.forEach(p => revisarKarma(calcularParcialVocales(p) + calcularParcialConsonantes(p)));
+    // revisarKarma(parseInt(document.getElementById("senderoNatal").value) || 0);
+    // revisarKarma(parseInt(document.getElementById("potencial").value) || 0);
+    const sumaVocalesRawTotal = parcialesVocalesRaw.reduce((a,b)=>a+b,0);
+    const sumaConsonantesRawTotal = parcialesConsonantesRaw.reduce((a,b)=>a+b,0);
+    const sumaMundoRawTotal = parcialesMundoRaw.reduce((a,b)=>a+b,0);
+
+    // 1) resultados principales (reducidos)
+    revisarKarma(sumaVocales);       // total esencia crudo antes de reducir final
+    revisarKarma(sumaConsonantes);   // total imagen crudo antes de reducir final
+    revisarKarma(sumaFinalMundo);    // total mundo crudo antes de reducir final
     revisarKarma(parseInt(document.getElementById("senderoNatal").value) || 0);
     revisarKarma(parseInt(document.getElementById("potencial").value) || 0);
 
-    document.getElementById("karmas").value = [...karmasEncontrados].sort((a,b) => a-b).join(", ") || "—";
+    // 2) RAW por palabra (vocales / consonantes / mundo)
+    parcialesVocalesRaw.forEach(v => revisarKarma(v));
+    parcialesConsonantesRaw.forEach(v => revisarKarma(v));
+    parcialesMundoRaw.forEach(v => revisarKarma(v));
+
+    // 3) RAW totales (acá aparece el 13 que se te estaba escapando)
+    revisarKarma(sumaVocalesRawTotal);
+    revisarKarma(sumaConsonantesRawTotal);
+    revisarKarma(sumaMundoRawTotal);
+
+    document.getElementById("karmas").value =
+      [...karmasEncontrados].sort((a,b) => a-b).join(", ") || "—";
 
     // 13. Lecciones Kármicas
     const conteo = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
@@ -722,22 +770,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-    // 20: Dígito de Edad
-    const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
-    const yaCumplio = fechaEnCurso >= cumpleEsteAnio;
+    // 20: Dígito de Edad (constante para TODO el año analizado)
+    const edadAntesAnual   = anioEnCurso - anioNac - 1;
+    const edadDespuesAnual = anioEnCurso - anioNac;
 
-    const edadDespues = anioEnCurso - anioNac - (yaCumplio ? 0 : 1);
-    const edadAntes = edadDespues - 1;
-    
-    const edad1 = reducirNumero(edadAntes);
-    const edad2 = reducirNumero(edadDespues);
+    const edad1 = reducirNumero(edadAntesAnual);
+    const edad2 = reducirNumero(edadDespuesAnual);
     const sumaEdad = edad1 + edad2;
-    const digitoEdad = [11, 22, 33].includes(sumaEdad) ? sumaEdad : reducirNumero(sumaEdad);
+
+    const digitoEdad = [11, 22, 33].includes(sumaEdad)
+      ? sumaEdad
+      : reducirNumero(sumaEdad);
+
     document.getElementById("digitoEdad").value = digitoEdad;
-    document.getElementById("digitoEdadTexto").textContent = `20. Dígito de Edad ${edadAntes} + ${edadDespues} →`;
+    document.getElementById("digitoEdadTexto").textContent =
+      `20. Dígito de Edad ${edadAntesAnual} + ${edadDespuesAnual} →`;
+
+    // 21: Edad actual (esta sí depende de la fecha elegida)
+    const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
+    const yaCumplioEnFecha = fechaEnCurso >= cumpleEsteAnio;
+
+    const edadActual = anioEnCurso - anioNac - (yaCumplioEnFecha ? 0 : 1);
+    document.getElementById("edadActual").value = edadActual;
+
+    // 20: Dígito de Edad
+    // const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
+    // const yaCumplio = fechaEnCurso >= cumpleEsteAnio;
+
+    // const edadDespues = anioEnCurso - anioNac - (yaCumplio ? 0 : 1);
+    // const edadAntes = edadDespues - 1;
+    
+    // const edad1 = reducirNumero(edadAntes);
+    // const edad2 = reducirNumero(edadDespues);
+    // const sumaEdad = edad1 + edad2;
+    // const digitoEdad = [11, 22, 33].includes(sumaEdad) ? sumaEdad : reducirNumero(sumaEdad);
+    // document.getElementById("digitoEdad").value = digitoEdad;
+    // document.getElementById("digitoEdadTexto").textContent = `20. Dígito de Edad ${edadAntes} + ${edadDespues} →`;
 
     // 21: Edad actual
-    document.getElementById("edadActual").value = edadDespues;
+    // document.getElementById("edadActual").value = edadDespues;
 
     // 22: Mes Personal
     const mesHoy = new Date().getMonth() + 1;
@@ -749,7 +820,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // 23: Tránsito de Letra
     const letrasSolo = nombreCompleto.replace(/[^A-ZÑ]/g, '');
     if (letrasSolo.length > 0) {
-      let edad = edadDespues;
+      // let edad = edadDespues;
+      let edad = edadActual;
       let acumulado = 0;
       let letraActual = letrasSolo[0];
 
@@ -856,7 +928,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const clavePersonalRaw = parseInt(document.getElementById("clavePersonal").value);
 
     const r24 = armonicoBasico(dobleDigitoAnioNacimiento, anioEnCurso);
-    const r25 = armonicoBasico(edadDespues, anioEnCurso);
+    const r25 = armonicoBasico(edadActual, anioEnCurso);
+    // const r25 = armonicoBasico(edadDespues, anioEnCurso);
     const r26 = armonicoBasico(senderoNatalRaw, anioEnCurso);
     const r27 = armonicoBasico(clavePersonalRaw, anioEnCurso);
 
@@ -865,7 +938,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Regla: si (primerosdos + últimosDos) > 78 → sumar dígito a dígito del número completo (anio + edad)
     // Ejemplo: 2025 + 31 = 2056 → 20 + 56 = 76 (ok)
     // Ejemplo: 2025 + 41 = 2066 → 20 + 66 = 86 (>78) → 2+0+6+6 = 14
-    const suma29 = anioEnCurso + edadDespues;
+    // const suma29 = anioEnCurso + edadDespues;
+    const suma29 = anioEnCurso + edadActual;
     const primerosDos29 = parseInt(suma29.toString().slice(0, 2));
     const ultimosDos29  = parseInt(suma29.toString().slice(2));
     let total29 = primerosDos29 + ultimosDos29;
