@@ -84,37 +84,33 @@
         <div class="card glass h-100">
           <div class="card-body">
             <h5 class="card-title mb-3 text-center">Numerología Base</h5>
-            <div class="row g-3">
-              <div class="col-md-12">
-                <label class="form-label">1. Esencia Íntima</label>
-                <input type="text" id="esenciaIntima" class="form-control form-control-neo text-center w-auto" readonly />
-                <small id="esenciaIntimaDetalle" class="resultado-detalle d-block mt-1"></small>
-              </div>
-              <div class="col-md-12">
-                <label class="form-label">2. Imagen</label>
-                <input type="text" id="imagen" class="form-control form-control-neo text-center w-auto" readonly />
-                <small id="imagenDetalle" class="resultado-detalle d-block mt-1"></small>
-              </div>
-              <div class="col-md-12">
-                <label class="form-label">3. Sendero del Mundo</label>
-                <input type="text" id="serMundo" class="form-control form-control-neo text-center w-auto" readonly />
-                <small id="serMundoDetalle" class="resultado-detalle d-block mt-1"></small>
-              </div>
-            </div>
-            <div class="col-md-12">
+            <!-- Tabla Base dinámica -->
+            <div id="tablaBaseKarma"></div>
+            <!-- KARMA -->
+            <div class="col-12 mb-2">
               <label class="form-label">Karma</label>
             </div>
-            <div class="col-md-6">
-              <label class="form-label">4. Sendero Natal</label>
-              <input type="text" id="senderoNatal" class="form-control form-control-neo text-center w-auto" readonly />
-              <small id="senderoNatalDetalle" class="resultado-detalle d-block mt-1"></small>
+
+            <!-- RESULTADOS 4 y 5 debajo de la tabla -->
+            <div class="row g-3">
+              <div class="col-md-12">
+                <label class="form-label">4. Sendero Natal</label>
+                <!-- <div id="senderoNatalDetalle" class="form-control form-control-neo text-center w-auto d-block mt-1" role="textbox" aria-readonly="true"></div> -->
+                <div id="senderoNatalDetalle" class="form-control form-control-neo form-control-static text-center mt-1" role="textbox" aria-readonly="true"></div>
+              </div>
+              <div class="col-md-12">
+                <label class="form-label">5. Potencial</label>
+                <!-- <div id="potencialDetalle" class="form-control form-control-neo text-center w-auto d-block mt-1" role="textbox" aria-readonly="true"></div> -->
+                 <div id="potencialDetalle" class="form-control form-control-neo form-control-static text-center mt-1" role="textbox" aria-readonly="true"></div>
+              </div>
             </div>
-            <div class="col-md-6">
-              <label class="form-label">5. Potencial</label>
-              <input type="text" id="potencial" class="form-control form-control-neo text-center w-auto" readonly />
-              <small id="potencialDetalle" class="resultado-detalle d-block mt-1"></small>
-            </div>
-            </div>
+
+            <!-- inputs viejos 1–5 (opcionales): los podés borrar o dejarlos escondidos -->
+            <input type="hidden" id="esenciaIntima">
+            <input type="hidden" id="imagen">
+            <input type="hidden" id="serMundo">
+            <input type="hidden" id="senderoNatal">
+            <input type="hidden" id="potencial">
           </div>
         </div>
       </div>

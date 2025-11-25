@@ -1,47 +1,2144 @@
-// numerologia.js
-// === ATAJOS DE TECLADO ===
+/* ============================================================================
+   numerologia.js
+   Filosofía:
+   - Helpers puros arriba, reutilizables por Base / Predictiva / Abracadabra.
+   - Pipelines: construir contexto -> calcular resultados -> renderizar.
+   - Toda lógica numerológica fuera del DOM (salvo renderers y DOM utils).
+============================================================================ */
 
-//  TODO FALTA RESOLVER EL RPOBLEMA DE: que si algo tiene capturado el mouse no funciona el atajo y si agregar el alt+z para limpiar todos los inputs y resultados y volver al "nombre" para completar luego
-/*
-document.addEventListener("keydown", (e) => {
-  // Ignorar si el usuario está escribiendo en un input o textarea
-  const activo = document.activeElement.tagName.toLowerCase();
-  if (activo === "input" || activo === "textarea") return;
+/* ==========================
+   0) CONSTANTES / DATA
+========================== */
 
-  // Verificamos si se presiona ALT
-  if (e.altKey) {
-    switch (e.key.toLowerCase()) {
-      case "c":
-        e.preventDefault();
-        document.getElementById("btnCalcular")?.click();
-        mostrarToast("🔮 Cálculo completo ejecutado (Alt + C)");
-        break;
+/**
+ * Tabla fija para calcular Clave Personal (Resultado 7).
+ * Estructura: TABLA_CLAVE_PERSONAL[mesEnMinuscula][dia] => valor (sin reducir).
+ * Reglas:
+ * - mes: nombre en español en minúsculas: "enero"..."diciembre".
+ * - dia: entero 1..31 (o 29 para febrero bisiesto).
+ * - Si no existe combinación válida, se retorna vacío / null en el cálculo.
+ */
+const TABLA_CLAVE_PERSONAL = {
+  enero: {1: 9, 2: 8, 3: 2, 4: 9, 5: 10, 6: 2, 7: 3, 8: 4, 9: 5, 10: 6, 11: 7, 12: 8, 13: 9, 14: 8, 15: 9, 16: 10, 17: 11, 18: 3, 19: 4, 20: 2, 21: 3, 22: 4, 23: 5, 24: 13, 25: 5, 26: 6, 27: 4, 28: 5, 29: 6, 30: 7, 31: 8},
+  febrero: {1: 10, 2: 8, 3: 9, 4: 10, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 7, 11: 8, 12: 7, 13: 8, 14: 9, 15: 10, 16: 11, 17: 3, 18: 4, 19: 2, 20: 3, 21: 4, 22: 1, 23: 4, 24: 5, 25: 12, 26: 4, 27: 5, 28: 6, 29: 7},
+  marzo: {1: 5, 2: 6, 3: 7, 4: 8, 5: 9, 6: 10, 7: 2, 8: 3, 9: 4, 10: 3, 11: 4, 12: 5, 13: 6, 14: 7, 15: 8, 16: 9, 17: 10, 18: 9, 19: 3, 20: 11, 21: 9, 22: 10, 23: 8, 24: 9, 25: 10, 26: 2, 27: 3, 28: 4, 29: 5, 30: 5, 31: 6},
+  abril: {1: 6, 2: 7, 3: 8, 4: 9, 5: 10, 6: 2, 7: 3, 8: 2, 9: 3, 10: 4, 11: 5, 12: 6, 13: 7, 14: 8, 15: 9, 16: 10, 17: 11, 18: 10, 19: 11, 20: 9, 21: 7, 22: 8, 23: 9, 24: 10, 25: 11, 26: 3, 27: 4, 28: 4, 29: 5, 30: 6},
+  mayo: {1: 6, 2: 7, 3: 8, 4: 9, 5: 10, 6: 9, 7: 1, 8: 2, 9: 3, 10: 4, 11: 5, 12: 6, 13: 7, 14: 8, 15: 9, 16: 8, 17: 9, 18: 10, 19: 8, 20: 6, 21: 7, 22: 8, 23: 9, 24: 1, 25: 11, 26: 11, 27: 3, 28: 4, 29: 5, 30: 6, 31: 8},
+  junio: {1: 7, 2: 8, 3: 9, 4: 8, 5: 9, 6: 10, 7: 2, 8: 3, 9: 4, 10: 5, 11: 6, 12: 7, 13: 8, 14: 7, 15: 8, 16: 9, 17: 7, 18: 8, 19: 6, 20: 6, 21: 7, 22: 7, 23: 8, 24: 7, 25: 8, 26: 8, 27: 9, 28: 9, 29: 1, 30: 8},
+  julio: {1: 11, 2: 1, 3: 11, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7, 9: 8, 10: 9, 11: 10, 12: 9, 13: 10, 14: 11, 15: 9, 16: 10, 17: 11, 18: 3, 19: 4, 20: 5, 21: 6, 22: 6, 23: 7, 24: 5, 25: 6, 26: 7, 27: 8, 28: 8, 29: 7, 30: 6, 31: 5},
+  agosto: {1: 10, 2: 11, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 8, 11: 9, 12: 10, 13: 8, 14: 9, 15: 10, 16: 11, 17: 3, 18: 4, 19: 5, 20: 5, 21: 6, 22: 7, 23: 5, 24: 6, 25: 7, 26: 9, 27: 8, 28: 7, 29: 8, 30: 5, 31: 4},
+  septiembre: {1: 11, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 7, 9: 8, 10: 9, 11: 7, 12: 8, 13: 9, 14: 10, 15: 11, 16: 3, 17: 4, 18: 4, 19: 5, 20: 6, 21: 7, 22: 5, 23: 6, 24: 1, 25: 9, 26: 8, 27: 7, 28: 8, 29: 11, 30: 4},
+  octubre: {1: 11, 2: 3, 3: 4, 4: 5, 5: 6, 6: 5, 7: 6, 8: 7, 9: 5, 10: 6, 11: 7, 12: 8, 13: 9, 14: 10, 15: 11, 16: 11, 17: 3, 18: 4, 19: 5, 20: 6, 21: 7, 22: 1, 23: 9, 24: 8, 25: 7, 26: 6, 27: 7, 28: 1, 29: 4, 30: 11, 31: 1},
+  noviembre: {1: 3, 2: 4, 3: 5, 4: 4, 5: 5, 6: 6, 7: 4, 8: 5, 9: 6, 10: 7, 11: 8, 12: 9, 13: 10, 14: 10, 15: 11, 16: 3, 17: 4, 18: 5, 19: 6, 20: 5, 21: 1, 22: 9, 23: 8, 24: 7, 25: 6, 26: 7, 27: 1, 28: 4, 29: 7, 30: 1},
+  diciembre: {1: 3, 2: 2, 3: 3, 4: 4, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 7, 11: 8, 12: 8, 13: 9, 14: 10, 15: 11, 16: 3, 17: 4, 18: 5, 19: 4, 20: 12, 21: 8, 22: 7, 23: 6, 24: 5, 25: 6, 26: 9, 27: 3, 28: 6, 29: 9, 30: 3, 31: 4}
+};
 
-      case "p":
-        e.preventDefault();
-        document.getElementById("btnCalcularPredictiva")?.click();
-        mostrarToast("📆 Cálculo predictivo ejecutado (Alt + P)");
-        break;
+/**
+ * Mapeo numerológico alfabético (A=1..I=9, J=1..R=9, S=1..Z=8, Ñ=5).
+ * Se usa para:
+ * - parciales de vocales/consonantes
+ * - tránsito de letra
+ * - lecciones kármicas
+ * - abracadabra fila 1
+ */
+const ALFABETO = {
+  A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, I: 9,
+  J: 1, K: 2, L: 3, M: 4, N: 5, Ñ: 5, O: 6, P: 7, Q: 8, R: 9,
+  S: 1, T: 2, U: 3, V: 4, W: 5, X: 6, Y: 7, Z: 8
+};
 
-      case "l":
-        e.preventDefault();
-        document.getElementById("btnLogout")?.click();
-        mostrarToast("🚪 Sesión cerrada (Alt + L)");
-        break;
+/** Conjunto de vocales consideradas para Esencia Íntima y dobles dígitos. */
+const VOCALES_SET = new Set(["A", "E", "I", "O", "U"]);
 
-      case "m":
-        e.preventDefault();
-        document.getElementById("toggleModo")?.click();
-        mostrarToast("🌗 Modo visual cambiado (Alt + M)");
-        break;
+/** Valores kármicos detectables. */
+const KARMAS_POSIBLES = [13, 14, 16, 19];
 
-      default:
-        break;
+/** Números maestros (no se reducen en reducirNumero). */
+const MAESTROS = [11, 22, 33];
+
+/** Nombres de meses para UI/cabeceras. Índice 0..11. */
+const MESES_NOMBRE = [
+  "Enero","Febrero","Marzo",
+  "Abril","Mayo","Junio",
+  "Julio","Agosto","Septiembre",
+  "Octubre","Noviembre","Diciembre"
+];
+
+/* ==========================
+   1) HELPERS COMPARTIDOS
+========================== */
+
+// --- DOM utils ---
+
+
+/**
+ * Acceso rápido a un elemento por id.
+ * @param {string} id - Id del elemento HTML.
+ * @returns {HTMLElement|null} - Elemento o null si no existe.
+ */
+function $(id) {
+  return document.getElementById(id);
+}
+
+/**
+ * Setea el value de un input/textarea si existe.
+ * @param {string} id - Id del input.
+ * @param {string|number|null} value - Valor a asignar. Null/undefined => "".
+ */
+function setValue(id, value) {
+  const el = $(id);
+  if (!el) return;
+  el.value = (value === null || value === undefined) ? "" : value;
+}
+
+/**
+ * Setea el textContent de un nodo si existe.
+ * @param {string} id - Id del elemento.
+ * @param {string|number|null} value - Texto a asignar.
+ */
+function setText(id, value) {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = (value === null || value === undefined) ? "" : value;
+}
+
+/**
+ * Setea el innerHTML de un nodo si existe.
+ * Usar solo para render seguro controlado (spans/tabla).
+ * @param {string} id - Id del elemento.
+ * @param {string} html - HTML a asignar.
+ */
+function setHTML(id, html) {
+  const el = $(id);
+  if (!el) return;
+  el.innerHTML = html ?? "";
+}
+
+/**
+ * Agrega/quita una clase CSS.
+ * @param {string} id - Id del elemento.
+ * @param {string} className - Clase a alternar.
+ * @param {boolean} [force] - Si se especifica, fuerza add/remove.
+ */
+function toggleClass(id, className, force) {
+  const el = $(id);
+  if (!el) return;
+  if (typeof force === "boolean") el.classList.toggle(className, force);
+  else el.classList.toggle(className);
+}
+
+
+// --- Texto / Normalización ---
+
+/**
+ * Normaliza texto para cálculos:
+ * - Quita acentos/diacríticos
+ * - Convierte ç -> c
+ * - Normaliza ñ/Ñ
+ * - Pasa a mayúsculas
+ *
+ * Equivale a normalizarTexto() de old_numerologia.js.
+ *
+ * @param {string} texto - Texto crudo del usuario.
+ * @returns {string} Texto normalizado en mayúsculas A-ZÑ sin diacríticos.
+ */
+
+// --- Texto / Normalización ---
+function normalizarTexto(texto) {
+  if (!texto) return "";
+  return texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ç/g, "c").replace(/Ç/g, "C")
+    .replace(/ñ/g, "Ñ").replace(/Ñ/g, "Ñ")
+    .toUpperCase();
+}
+
+/**
+ * Construye nombre completo normalizado "NOMBRES APELLIDOS".
+ * Maneja trims y espacios repetidos.
+ *
+ * @param {string} nombresRaw
+ * @param {string} apellidosRaw
+ * @returns {string} nombreCompleto normalizado.
+ */
+function obtenerNombreCompletoNormalizado(nombresRaw, apellidosRaw) {
+  const n = normalizarTexto((nombresRaw || "").trim());
+  const a = normalizarTexto((apellidosRaw || "").trim());
+  return `${n} ${a}`.trim().replace(/\s+/g, " ");
+}
+
+/**
+ * Divide el nombre completo en palabras (tokens) separadas por espacios.
+ * Filtra tokens vacíos.
+ *
+ * @param {string} nombreCompleto - Ya normalizado.
+ * @returns {string[]} array de palabras.
+ */
+function dividirEnPalabras(nombreCompleto) {
+  if (!nombreCompleto) return [];
+  return nombreCompleto.split(/\s+/).filter(p => p);
+}
+
+/**
+ * Devuelve solo letras válidas A-ZÑ en un string continuo sin espacios.
+ *
+ * @param {string} nombreCompleto - Normalizado.
+ * @returns {string} Letras sin separadores.
+ */
+function soloLetras(nombreCompleto) {
+  if (!nombreCompleto) return "";
+  return nombreCompleto.replace(/[^A-ZÑ]/g, "");
+}
+
+
+// --- Matemática / Reducciones ---
+
+/**
+ * Indica si un número es maestro (11, 22, 33).
+ * @param {number} n
+ * @returns {boolean}
+ */
+
+function esMaestro(n) {
+  return MAESTROS.includes(Number(n));
+}
+
+/**
+ * Suma dígito a dígito un número entero positivo.
+ * Ej: 2056 -> 2+0+5+6 = 13
+ *
+ * @param {number|string} n
+ * @returns {number} suma de dígitos.
+ */
+function sumarDigitos(n) {
+  if (n === null || n === undefined) return 0;
+  const s = n.toString().replace(/\D/g, "");
+  let total = 0;
+  for (const ch of s) total += parseInt(ch, 10);
+  return total;
+}
+
+/**
+ * Reduce un número según numerología clásica:
+ * - Si es maestro (11,22,33) se devuelve sin cambios.
+ * - Si >=10: se suman dígitos repetidamente hasta <10 o maestro.
+ *
+ * @param {number} n
+ * @returns {number} reducido final.
+ */
+function reducirNumero(n) {
+  n = Number(n);
+  if (!Number.isFinite(n)) return 0;
+  if (esMaestro(n)) return n;
+  let suma = n;
+  while (suma >= 10) {
+    suma = sumarDigitos(suma);
+    if (esMaestro(suma)) break;
+  }
+  return suma;
+}
+
+/**
+ * Reducción estricta a un único dígito (1–9) sin preservar maestros.
+ * Se usa en Abracadabra filas 2..9 y en reducirADigitoParaArmonicos.
+ *
+ * @param {number} n
+ * @returns {number} 1..9 (o 0 si entrada inválida).
+ */
+function reducirEstrictoADigito(n) {
+  n = Number(n);
+  if (!Number.isFinite(n)) return 0;
+  let x = Math.abs(n);
+  while (x >= 10) x = sumarDigitos(x);
+  return x;
+}
+
+/**
+ * Regla de reducción especial para Sendero Natal:
+ * - Preserva 11 y 22.
+ * - Si valor es 29 => 11.
+ * - No permite 33 (si suma final da 33 => 6).
+ *
+ * @param {number} valor - mes, día o suma de año.
+ * @returns {number} valor reducido según regla SN.
+ */
+function reducirFechaSN(valor) {
+  valor = Number(valor);
+  if (!Number.isFinite(valor)) return 0;
+  if ([11, 22].includes(valor)) return valor;
+  if (valor === 29) return 11;
+  return reducirNumero(valor);
+}
+
+/**
+ * Regla para Ciclo de Vida (Resultado 11):
+ * - Preserva 11 y 22; resto reduce normal.
+ *
+ * @param {number} valor
+ * @returns {number}
+ */
+function reducirParaCV(valor) {
+  valor = Number(valor);
+  if (!Number.isFinite(valor)) return 0;
+  return ([11, 22].includes(valor)) ? valor : reducirNumero(valor);
+}
+
+
+// --- Parciales por palabra ---
+
+/**
+ * Suma RAW de vocales de una palabra sin reducir.
+ * Usa ALFABETO y VOCALES_SET.
+ *
+ * @param {string} palabra - Normalizada (A-ZÑ).
+ * @returns {number} suma cruda vocales.
+ */
+
+function parcialVocalesRaw(palabra) {
+  if (!palabra) return 0;
+  let suma = 0;
+  for (const letra of palabra) {
+    if (VOCALES_SET.has(letra)) suma += ALFABETO[letra] || 0;
+  }
+  return suma;
+}
+
+/**
+ * Suma RAW de consonantes de una palabra sin reducir.
+ * Consonante = letra válida A-ZÑ que no es vocal.
+ *
+ * @param {string} palabra
+ * @returns {number} suma cruda consonantes.
+ */
+function parcialConsonantesRaw(palabra) {
+  if (!palabra) return 0;
+  let suma = 0;
+  for (const letra of palabra) {
+    if (/[A-ZÑ]/.test(letra) && !VOCALES_SET.has(letra)) {
+      suma += ALFABETO[letra] || 0;
     }
   }
-});
+  return suma;
+}
 
-// Pequeño aviso visual opcional (tipo "toast")
+/**
+ * Parcial de vocales reducido (por palabra).
+ * Regla: sumar vocales y luego reducirNumero.
+ *
+ * @param {string} palabra
+ * @returns {number} parcial reducido.
+ */
+function parcialVocalesReducido(palabra) {
+  return reducirNumero(parcialVocalesRaw(palabra));
+}
+
+/**
+ * Parcial de consonantes reducido (por palabra).
+ * Regla: sumar consonantes y luego reducirNumero.
+ *
+ * @param {string} palabra
+ * @returns {number} parcial reducido.
+ */
+function parcialConsonantesReducido(palabra) {
+  return reducirNumero(parcialConsonantesRaw(palabra));
+}
+
+/**
+ * Calcula todos los parciales base por palabra en un solo paso.
+ *
+ * @param {string[]} palabras
+ * @returns {{
+ *   vocalesRed:number[],
+ *   consonantesRed:number[],
+ *   vocalesRaw:number[],
+ *   consonantesRaw:number[]
+ * }}
+ */
+function parcialesPorPalabra(palabras) {
+  const vocalesRed = [];
+  const consonantesRed = [];
+  const vocalesRaw = [];
+  const consonantesRaw = [];
+  for (const p of palabras) {
+    const vRaw = parcialVocalesRaw(p);
+    const cRaw = parcialConsonantesRaw(p);
+    vocalesRaw.push(vRaw);
+    consonantesRaw.push(cRaw);
+    vocalesRed.push(reducirNumero(vRaw));
+    consonantesRed.push(reducirNumero(cRaw));
+  }
+  return { vocalesRed, consonantesRed, vocalesRaw, consonantesRaw };
+}
+
+
+// --- Fechas / Edad ---
+
+/**
+ * Parsea fecha ISO "YYYY-MM-DD" a Date.
+ * Si value vacío/ inválido => null.
+ *
+ * @param {string} value
+ * @returns {Date|null}
+ */
+
+function parseFechaISO(value) {
+  if (!value) return null;
+  const [y,m,d] = value.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m-1, d); // local time, sin corrimiento
+}
+
+/**
+ * Obtiene año numérico de una Date.
+ * @param {Date} fecha
+ * @returns {number}
+ */
+function getAnio(fecha) { return fecha.getFullYear(); }
+/**
+ * Obtiene mes 1..12 de una Date.
+ * @param {Date} fecha
+ * @returns {number}
+ */
+function getMes(fecha) { return fecha.getMonth() + 1; }
+/**
+ * Obtiene día 1..31 de una Date.
+ * @param {Date} fecha
+ * @returns {number}
+ */
+function getDia(fecha) { return fecha.getDate(); }
+
+/**
+ * Construye el Date del cumpleaños en un año dado.
+ *
+ * @param {number} anio - Año objetivo.
+ * @param {number} mesNac - 1..12.
+ * @param {number} diaNac - 1..31.
+ * @returns {Date}
+ */
+function cumpleEnAnio(anio, mesNac, diaNac) {
+  return new Date(anio, mesNac - 1, diaNac);
+}
+
+/**
+ * Determina si en la fecha en curso ya se cumplió años.
+ * Reglas iguales a old_numerologia.js para resultados 20 y 21.
+ *
+ * @param {Date} fechaEnCurso
+ * @param {number} mesNac
+ * @param {number} diaNac
+ * @returns {boolean}
+ */
+function yaCumplioEnFecha(fechaEnCurso, mesNac, diaNac) {
+  if (!fechaEnCurso) return false;
+  const anio = getAnio(fechaEnCurso);
+  const cumple = cumpleEnAnio(anio, mesNac, diaNac);
+  return fechaEnCurso >= cumple;
+}
+
+/**
+ * Calcula edad vigente en la fecha en curso.
+ * Edad = anioEnCurso - anioNac - (yaCumplio ? 0 : 1)
+ *
+ * @param {number} anioNac
+ * @param {number} mesNac
+ * @param {number} diaNac
+ * @param {Date} fechaEnCurso
+ * @returns {number} edad actual.
+ */
+function calcularEdadEnFecha(anioNac, mesNac, diaNac, fechaEnCurso) {
+  if (!fechaEnCurso || !anioNac || !mesNac || !diaNac) return 0;
+  const anioEnCurso = getAnio(fechaEnCurso);
+  const yaCumplio = yaCumplioEnFecha(fechaEnCurso, mesNac, diaNac);
+  return anioEnCurso - anioNac - (yaCumplio ? 0 : 1);
+}
+
+
+// --- Helpers de UI numérica ---
+
+/**
+ * Devuelve un HTML tipo "crudo / principal" para spans detalle.
+ *
+ * @param {number|string|null} crudo
+ * @param {number|string|null} reducido
+ * @returns {string} html con spans num-crudo y num-principal.
+ */
+function renderKarmaKSpan(title) {
+  const safeTitle = (title || "").replace(/"/g, "&quot;");
+  return `<span class="karma-k" data-bs-toggle="tooltip" data-bs-placement="top" title="${safeTitle}" style="color:#ff5e5e;font-weight:700;cursor:help;">k</span>`;
+}
+
+function initKarmaTooltips(root=document) {
+  if (!window.bootstrap?.Tooltip) return;
+  // Bootstrap bundle ya trae Tooltip
+  root.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+    // evita duplicados si re-renderizas
+    if (el._tooltip) el._tooltip.dispose();
+    el._tooltip = new bootstrap.Tooltip(el);
+  });
+}
+
+    
+function formatearDetalleCrudoYReducido(crudo, reducido) {
+  if (!crudo && crudo !== 0) return "";
+  return `
+    <span class="num-crudo">${crudo}</span>
+    <span class="num-sep">/</span>
+    <span class="num-principal">${reducido ?? ""}</span>
+  `;
+}
+
+/**
+ * Pinta el detalle crudo/reducido en un span contenedor.
+ * Si crudo falsy => limpia.
+ *
+ * @param {string} idDetalle
+ * @param {number|string|null} crudo
+ * @param {number|string|null} reducido
+ */
+function pintarDetalle(idDetalle, crudo, reducido) {
+  const el = $(idDetalle);
+  if (!el) return;
+  if (!crudo && crudo !== 0) {
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML = formatearDetalleCrudoYReducido(crudo, reducido);
+}
+
+
+/* ==========================
+   2) TABLA BASE KÁRMICA
+========================== */
+
+/**
+ * Construye la data necesaria para renderizar la tabla base kármica.
+ * Debe replicar exactamente:
+ * - cálculo real de parciales mundo columna a columna
+ * - detección de karmas horizontales/verticales/por total de fila
+ *
+ * @param {object} ctxBase - Contexto Base.
+ * @param {object} resultsBase - Resultados base calculados (1-3 especialmente).
+ * @returns {{
+ *   palabrasTotales:string[],
+ *   filas:Array<{nombre:string,valores:number[],total:number,karma?:string}>,
+ *   karmasH:boolean[][],
+ *   karmasV:boolean[][],
+ *   columnasKarma:boolean[]
+ * }}
+ */
+/**
+ * Pinta la "k" roja dentro de un texto ya formateado.
+ * SOLO reemplaza ",k" por span rojo.
+ */
+function pintarKRoja(texto) {
+  if (!texto) return "";
+  return texto.replace(/,k\b/g, ',<span style="color:#ff5e5e;font-weight:700;">k</span>');
+}
+
+/**
+ * Render placeholder inicial para que la tabla exista "estática"
+ * antes de apretar Calcular.
+ */
+function renderTablaBaseKarmicaPlaceholder() {
+  const numCols = 4;
+
+  // palabras vacías de placeholder
+  const palabrasTotales = Array(numCols).fill("-");
+
+  // filas vacías (NO uses ctxBase ni resultsBase acá)
+  const filas = [
+    {
+      nombre: "Esencia Íntima",
+      valores: Array(numCols).fill(""),
+      totalHTML: "",
+      karma: ""
+    },
+    {
+      nombre: "Imagen",
+      valores: Array(numCols).fill(""),
+      totalHTML: "",
+      karma: ""
+    },
+    {
+      nombre: "Sendero del Mundo",
+      valores: Array(numCols).fill(""),
+      totalHTML: "",
+      karma: ""
+    }
+  ];
+
+  const karmasH = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
+  const karmasV = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
+  const columnasKarma = Array(numCols).fill(false);
+
+  renderTablaBaseKarmica({
+    palabrasTotales,
+    filas,
+    karmasH,
+    karmasV,
+    columnasKarma,
+    infoH: null,
+    infoV: null,
+    columnasInfo: null
+  });
+}
+
+
+function buildTablaBaseKarmicaData(ctxBase, resultsBase) {
+  const palabrasTotales = [
+    ...dividirEnPalabras(ctxBase.nombres),
+    ...dividirEnPalabras(ctxBase.apellidos)
+  ].filter(Boolean);
+
+  const numCols = palabrasTotales.length;
+
+  const parcialesVocales = resultsBase.esenciaIntima.parciales;
+  const parcialesConsonantes = resultsBase.imagen.parciales;
+
+  // Sendero Mundo real columna a columna
+  const parcialesMundoReales = parcialesVocales.map((v, i) => {
+    const c = parcialesConsonantes[i] ?? 0;
+    const suma = v + c;
+    return esMaestro(suma) ? suma : reducirNumero(suma);
+  });
+
+  // const filas = [
+  //   { nombre: "Esencia Íntima", valores: parcialesVocales, total: resultsBase.esenciaIntima.valor, karma: "" },
+  //   { nombre: "Imagen", valores: parcialesConsonantes, total: resultsBase.imagen.valor, karma: "" },
+  //   { nombre: "Sendero del Mundo", valores: parcialesMundoReales, total: resultsBase.senderoMundo.valor, karma: "" }
+  // ];
+  const filas = [
+    {nombre: "Esencia Íntima",
+      valores: parcialesVocales,
+      // detalle crudo/reducido (reemplaza al total numérico)
+      totalHTML: formatearDetalleCrudoYReducido(
+        resultsBase.esenciaIntima.crudo,
+        resultsBase.esenciaIntima.valor
+      ),
+      karma: ""
+    },
+    {
+      nombre: "Imagen",
+      valores: parcialesConsonantes,
+      totalHTML: formatearDetalleCrudoYReducido(
+        resultsBase.imagen.crudo,
+        resultsBase.imagen.valor
+      ),
+      karma: ""
+    },
+    {
+      nombre: "Sendero del Mundo",
+      valores: parcialesMundoReales,
+      totalHTML: formatearDetalleCrudoYReducido(
+        resultsBase.senderoMundo.crudo,
+        resultsBase.senderoMundo.valor
+      ),
+      karma: ""
+    }
+  ];
+
+
+  const { karmasH, infoH } = detectarKarmasHorizontales(filas, numCols);
+  const { karmasV, columnasKarma, infoV, columnasInfo } = detectarKarmasVerticales(filas, numCols);
+  detectarKarmaEnTotalesFila(filas);
+
+  return { palabrasTotales, filas, karmasH, karmasV, columnasKarma, infoH, infoV, columnasInfo };
+}
+
+
+/**
+ * Detecta karmas horizontales dentro de cada fila.
+ * Regla especial:
+ * - el 10 cuenta como 1 solo horizontalmente (para detección),
+ *   pero se renderiza como 10 solo en Imagen si corresponde.
+ *
+ * @param {Array<{valores:number[], karma?:string}>} filas
+ * @param {number} numCols
+ * @returns {boolean[][]} matriz [fila][col] con marcas horizontales.
+ */
+function detectarKarmasHorizontales(filas, numCols) {
+  const karmasH = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
+  const infoH   = Array(filas.length).fill(null).map(() => Array(numCols).fill(null));
+
+  filas.forEach((fila, i) => {
+    for (let j = 0; j < fila.valores.length - 1; j++) {
+      const a = fila.valores[j];
+      const b = fila.valores[j + 1];
+      if (a == null || b == null) continue;
+
+      const aEval = esMaestro(a) ? a : (a === 10 ? 1 : a);
+      const bEval = esMaestro(b) ? b : (b === 10 ? 1 : b);
+      const suma = aEval + bEval;
+
+      if (KARMAS_POSIBLES.includes(suma)) {
+        karmasH[i][j] = true;
+        karmasH[i][j + 1] = true;
+
+        const detalle = `Karma ${suma} (horizontal: ${aEval} + ${bEval})`;
+        infoH[i][j] = { karma: suma, detalle };
+        infoH[i][j + 1] = { karma: suma, detalle };
+
+        fila.karma = "k";
+      }
+    }
+  });
+
+  return { karmasH, infoH };
+}
+
+
+/**
+ * Detecta karmas verticales acumulativos por columna.
+ * Reglas:
+ * - acumulado suma valores sin reducir
+ * - el 10 vertical mantiene 10 real
+ * - si acumulado da 13/14/16/19 se marca esa celda.
+ *
+ * @param {Array<{valores:number[]}>} filas
+ * @param {number} numCols
+ * @returns {{karmasV:boolean[][], columnasKarma:boolean[]}}
+ */
+function detectarKarmasVerticales(filas, numCols) {
+  const karmasV = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
+  const infoV   = Array(filas.length).fill(null).map(() => Array(numCols).fill(null));
+
+  const columnasKarma = Array(numCols).fill(false);
+  const columnasInfo  = Array(numCols).fill(null);
+
+  for (let c = 0; c < numCols; c++) {
+    let acumulado = 0;
+    for (let r = 0; r < filas.length; r++) {
+      const val = filas[r].valores[c];
+      if (val == null) continue;
+      acumulado += (val === 10 ? 10 : val);
+
+      if (KARMAS_POSIBLES.includes(acumulado)) {
+        karmasV[r][c] = true;
+        columnasKarma[c] = true;
+
+        const detalle = `Karma ${acumulado} (vertical: acumulado en columna = ${acumulado})`;
+        infoV[r][c] = { karma: acumulado, detalle };
+        columnasInfo[c] = { karma: acumulado, detalle };
+      }
+    }
+  }
+
+  return { karmasV, columnasKarma, infoV, columnasInfo };
+}
+
+
+/**
+ * Revisa el total bruto por fila (sin reducir),
+ * marcando karma en la fila si el total da 13/14/16/19.
+ *
+ * @param {Array<{valores:number[], karma?:string}>} filas
+ * @returns {Array<{valores:number[], karma?:string}>} filas mutadas o copiadas.
+ */
+function detectarKarmaEnTotalesFila(filas) {
+  filas.forEach(fila => {
+    let sumaBruta = 0;
+    fila.valores.forEach(v => {
+      if (v != null) sumaBruta += (v === 10 ? 10 : v);
+    });
+
+    if (KARMAS_POSIBLES.includes(sumaBruta)) {
+      fila.karma = "k";
+      fila.karmaTotalInfo = `Karma ${sumaBruta} (total fila: ${sumaBruta})`;
+    } else {
+      fila.karmaTotalInfo = null;
+    }
+  });
+  return filas;
+}
+
+
+/**
+ * Renderiza en DOM la tabla base kármica.
+ * Si no existe contenedor, lo crea bajo la card de Numerología Base.
+ *
+ * @param {ReturnType<buildTablaBaseKarmicaData>} tablaData
+ */
+function renderTablaBaseKarmica(tablaData) {
+  const { palabrasTotales, filas, karmasH, karmasV, columnasKarma, infoH, infoV, columnasInfo } = tablaData;
+  const numCols = palabrasTotales.length;
+
+  let html = `
+    <div class="table-responsive mt-3">
+      <table class="table table-glass text-center align-middle">
+        <thead>
+          <tr>
+            <th>Resultado</th>
+            ${palabrasTotales.map(p => `<th>${p}</th>`).join("")}
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+
+  filas.forEach((fila, i) => {
+    html += `<tr><th>${fila.nombre}</th>`;
+    for (let j = 0; j < numCols; j++) {
+      const val = fila.valores[j];
+      const isKarma = (karmasH[i]?.[j]) || (karmasV[i]?.[j]);
+      const info = infoH?.[i]?.[j] || infoV?.[i]?.[j];
+
+      const displayVal = (fila.nombre === "Imagen" && val === 1) ? "10" : val;
+      const style = isKarma ? 'style="color:#ff5e5e;font-weight:700;"' : "";
+      const titleAttr = info?.detalle ? `data-bs-toggle="tooltip" title="${info.detalle.replace(/"/g,"&quot;")}"` : "";
+
+      html += `<td ${style} ${titleAttr}>${displayVal ?? ""}</td>`;
+    }
+
+    // Total + K solo si el karma viene del total de fila
+    let totalHTML = fila.totalHTML || "";
+    if (fila.karmaTotalInfo) {
+      totalHTML += " " + renderKarmaKSpan(fila.karmaTotalInfo);
+    }
+    html += `<td>${totalHTML}</td></tr>`;
+  });
+
+  // fila inferior K columnas
+  html += `<tr><td></td>`;
+  for (let j = 0; j < numCols; j++) {
+    if (columnasKarma[j]) {
+      const det = columnasInfo?.[j]?.detalle || "Karma en columna";
+      html += `<td>${renderKarmaKSpan(det)}</td>`;
+    } else {
+      html += `<td></td>`;
+    }
+  }
+  html += `<td></td></tr>`;
+
+  html += `</tbody></table></div>`;
+
+  let tablaDiv = $("tablaBaseKarma");
+  if (!tablaDiv) {
+    tablaDiv = document.createElement("div");
+    tablaDiv.id = "tablaBaseKarma";
+    const cardTitle = [...document.querySelectorAll(".card-title")]
+      .find(el => el.textContent.includes("Numerología Base"));
+    if (cardTitle) cardTitle.parentElement.appendChild(tablaDiv);
+    else document.body.appendChild(tablaDiv);
+  }
+  tablaDiv.innerHTML = html;
+
+  // activar tooltips
+  initKarmaTooltips(tablaDiv);
+}
+
+// function renderTablaBaseKarmica(tablaData) {
+//   const { palabrasTotales, filas, karmasH, karmasV, columnasKarma } = tablaData;
+//   const numCols = palabrasTotales.length;
+
+
+
+//   filas.forEach((fila, i) => {
+//     html += `<tr><th>${fila.nombre}</th>`;
+//     for (let j = 0; j < numCols; j++) {
+//       const val = fila.valores[j];
+//       const isKarma = (karmasH[i]?.[j]) || (karmasV[i]?.[j]);
+
+//       // visual 10 como en tu old code
+//       const displayVal = (val === 1 && fila.nombre === "Imagen") ? "10" : val;
+
+//       const style = isKarma ? 'style="color:#ff5e5e;font-weight:700;"' : "";
+//       html += `<td ${style}>${displayVal ?? ""}</td>`;
+//     }
+//     const totalConK = fila.totalHTML
+//       ? pintarKRoja(fila.totalHTML + (fila.karma ? ",k" : ""))
+//       : (fila.karma ? "<span style='color:red;font-weight:700;'>k</span>" : "");
+
+//     html += `<td>${totalConK}</td></tr>`;
+
+//   });
+
+//   // fila inferior K columnas
+//   html += `<tr><td></td>`;
+//   for (let j = 0; j < numCols; j++) {
+//     html += `<td>${columnasKarma[j] ? "<span style='color:red;font-weight:700;'>k</span>" : ""}</td>`;
+//   }
+//   html += `<td></td></tr>`;
+
+//   html += `
+//         </tbody>
+//       </table>
+//     </div>
+//   `;
+
+//   let tablaDiv = $("tablaBaseKarma");
+//   if (!tablaDiv) {
+//     tablaDiv = document.createElement("div");
+//     tablaDiv.id = "tablaBaseKarma";
+//     const cardTitle = [...document.querySelectorAll(".card-title")]
+//       .find(el => el.textContent.includes("Numerología Base"));
+//     if (cardTitle) cardTitle.parentElement.appendChild(tablaDiv);
+//     else document.body.appendChild(tablaDiv);
+//   }
+//   tablaDiv.innerHTML = html;
+// }
+
+
+/* ==========================
+   3) CABECERAS CUATRIMESTRES
+========================== */
+
+/**
+ * Obtiene label "MesInicio – MesFin" para un cuatrimestre.
+ * Cuatrimestre = 4 meses contando desde mesInicio inclusive.
+ *
+ * @param {number} mesInicio - 1..12.
+ * @returns {string}
+ */
+function rangoCuatrimestre(mesInicio) {
+  const idxInicio = (mesInicio - 1) % 12;
+  const idxFin = (mesInicio - 1 + 3) % 12;
+  return `${MESES_NOMBRE[idxInicio]} – ${MESES_NOMBRE[idxFin]}`;
+}
+
+/**
+ * Calcula los 3 rangos de cuatrimestres:
+ * - cuatri1 desde mes de nacimiento
+ * - cuatri2 desde mesNac + 4
+ * - cuatri3 desde mesNac + 8
+ *
+ * @param {number} mesNac - 1..12.
+ * @returns {{cuatri1:string,cuatri2:string,cuatri3:string}}
+ */
+function calcularRangosCuatrimestres(mesNac) {
+  const mes1 = mesNac;
+  const mes2 = ((mesNac - 1 + 4) % 12) + 1;
+  const mes3 = ((mesNac - 1 + 8) % 12) + 1;
+  return {
+    cuatri1: rangoCuatrimestre(mes1),
+    cuatri2: rangoCuatrimestre(mes2),
+    cuatri3: rangoCuatrimestre(mes3)
+  };
+}
+
+/**
+ * Actualiza los H1/H2/H3 de cuatrimestres.
+ * Si fecha inválida, deja textos por defecto.
+ *
+ * @param {string} fechaNacimientoISO - "YYYY-MM-DD"
+ */
+function actualizarCabecerasCuatrimestres(fechaNacimientoISO) {
+  const h1 = $("cuatri1-header");
+  const h2 = $("cuatri2-header");
+  const h3 = $("cuatri3-header");
+  if (!h1 || !h2 || !h3) return;
+
+  if (!fechaNacimientoISO) {
+    h1.textContent = "1º Cuatri";
+    h2.textContent = "2º Cuatri";
+    h3.textContent = "3º Cuatri";
+    return;
+  }
+
+  const partes = fechaNacimientoISO.split("-");
+  if (partes.length !== 3) {
+    h1.textContent = "1º Cuatri";
+    h2.textContent = "2º Cuatri";
+    h3.textContent = "3º Cuatri";
+    return;
+  }
+
+  const mesNac = parseInt(partes[1], 10);
+  if (isNaN(mesNac) || mesNac < 1 || mesNac > 12) {
+    h1.textContent = "1º Cuatri";
+    h2.textContent = "2º Cuatri";
+    h3.textContent = "3º Cuatri";
+    return;
+  }
+
+  const rangos = calcularRangosCuatrimestres(mesNac);
+  h1.textContent = rangos.cuatri1;
+  h2.textContent = rangos.cuatri2;
+  h3.textContent = rangos.cuatri3;
+}
+
+
+/* ==========================
+   4) PIPELINE BASE (1–18)
+========================== */
+
+// --- Inputs / Context ---
+
+/**
+ * Lee inputs base desde el DOM (nombres/apellidos/fechaNacimiento).
+ * No calcula nada; solo retorna data cruda.
+ *
+ * @returns {{
+ *   nombresRaw:string,
+ *   apellidosRaw:string,
+ *   fechaNacimientoISO:string
+ * }}
+ */
+function getBaseInputsFromDOM() {
+  return {
+    nombresRaw: $("nombres")?.value ?? "",
+    apellidosRaw: $("apellidos")?.value ?? "",
+    fechaNacimientoISO: $("fechaNacimiento")?.value ?? ""
+  };
+}
+
+/**
+ * Construye el contexto base a partir de inputs crudos.
+ * Incluye valores normalizados, palabras, letras y parciales.
+ *
+ * @param {ReturnType<getBaseInputsFromDOM>} inputs
+ * @returns {{
+ *   nombres:string,
+ *   apellidos:string,
+ *   nombreCompleto:string,
+ *   palabras:string[],
+ *   letrasSolo:string,
+ *   fechaNacimientoISO:string,
+ *   anioNac:number|null,
+ *   mesNac:number|null,
+ *   diaNac:number|null,
+ *   parciales:ReturnType<parcialesPorPalabra>
+ * }}
+ */
+function buildBaseContext(inputs) {
+  const nombreCompleto = obtenerNombreCompletoNormalizado(inputs.nombresRaw, inputs.apellidosRaw);
+  const palabras = dividirEnPalabras(nombreCompleto);
+  const letrasSolo = soloLetras(nombreCompleto);
+
+  let anioNac = null, mesNac = null, diaNac = null;
+  if (inputs.fechaNacimientoISO) {
+    const [a, m, d] = inputs.fechaNacimientoISO.split("-").map(Number);
+    if (!isNaN(a) && !isNaN(m) && !isNaN(d)) {
+      anioNac = a; mesNac = m; diaNac = d;
+    }
+  }
+
+  const parciales = parcialesPorPalabra(palabras);
+
+  return {
+    nombres: normalizarTexto(inputs.nombresRaw.trim()),
+    apellidos: normalizarTexto(inputs.apellidosRaw.trim()),
+    nombreCompleto,
+    palabras,
+    letrasSolo,
+    fechaNacimientoISO: inputs.fechaNacimientoISO,
+    anioNac, mesNac, diaNac,
+    parciales
+  };
+}
+
+
+// --- Cálculos individuales ---
+
+/**
+ * Resultado 1: Esencia Íntima.
+ * Regla:
+ * - parcial vocales por palabra reducido
+ * - sumar parciales (si parcial maestro, sumar sus dígitos)
+ * - reducir total final preservando maestros.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number, crudo:number, parciales:number[]}}
+ */
+function calcEsenciaIntima(ctx) {
+  const parciales = ctx.parciales.vocalesRed;
+  let crudo = 0;
+  for (const p of parciales) {
+    crudo += esMaestro(p) ? sumarDigitos(p) : p;
+  }
+  const valor = reducirNumero(crudo);
+  return { valor, crudo, parciales };
+}
+
+/**
+ * Resultado 2: Imagen.
+ * Regla:
+ * - parcial consonantes por palabra reducido
+ * - sumar parciales (maestros => sumar dígitos)
+ * - reducir total final.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number, crudo:number, parciales:number[]}}
+ */
+function calcImagen(ctx) {
+  const parciales = ctx.parciales.consonantesRed;
+  let crudo = 0;
+  for (const p of parciales) {
+    crudo += esMaestro(p) ? sumarDigitos(p) : p;
+  }
+  const valor = reducirNumero(crudo);
+  return { valor, crudo, parciales };
+}
+
+/**
+ * Resultado 3: Sendero del Mundo.
+ * Regla:
+ * - por palabra: vocalesReducido + consonantesReducido => reducir
+ * - sumar parciales (maestros => sumar dígitos)
+ * - reducir total final.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number, crudo:number, parciales:number[]}}
+ */
+function calcSenderoMundo(ctx) {
+  const parcialesMundo = ctx.parciales.vocalesRed.map((v, i) => {
+    const c = ctx.parciales.consonantesRed[i] ?? 0;
+    return reducirNumero(v + c);
+  });
+  let crudo = 0;
+  for (const p of parcialesMundo) {
+    crudo += esMaestro(p) ? sumarDigitos(p) : p;
+  }
+  const valor = reducirNumero(crudo);
+  return { valor, crudo, parciales: parcialesMundo };
+}
+
+/**
+ * Resultado 4: Sendero Natal.
+ * Regla SN:
+ * - reducir mes, día y año (año = suma dígitos del año)
+ * - con reducirFechaSN en cada parte
+ * - sumar partes => si 33 => 6 else reducirNumero.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number|null, crudo:number|null, partes:{mes:number, dia:number, anio:number}}}
+ */
+function calcSenderoNatal(ctx) {
+  if (!ctx.fechaNacimientoISO || !ctx.anioNac || !ctx.mesNac || !ctx.diaNac) {
+    return { valor: null, crudo: null, partes: { mes: 0, dia: 0, anio: 0 } };
+  }
+
+  const mesR = reducirFechaSN(ctx.mesNac);
+  const diaR = reducirFechaSN(ctx.diaNac);
+  const anioSum = sumarDigitos(ctx.anioNac);
+  const anioR = reducirFechaSN(anioSum);
+
+  const crudo = mesR + diaR + anioR;
+  const valor = (crudo === 33) ? 6 : reducirNumero(crudo);
+
+  return { valor, crudo, partes: { mes: mesR, dia: diaR, anio: anioR } };
+}
+
+/**
+ * Resultado 5: Potencial.
+ * Regla:
+ * - senderoMundo + senderoNatal => reducirNumero.
+ *
+ * @param {object} ctx
+ * @param {{senderoMundo:number, senderoNatal:number}} resultsParciales
+ * @returns {{valor:number|null, crudo:number|null}}
+ */
+function calcPotencial(ctx, resultsParciales) {
+  const { senderoMundo, senderoNatal } = resultsParciales;
+  if (senderoMundo == null || senderoNatal == null) {
+    return { valor: null, crudo: null };
+  }
+  const crudo = senderoMundo + senderoNatal;
+  const valor = reducirNumero(crudo);
+  return { valor, crudo };
+}
+
+/**
+ * Resultado 6: Ciclo de Letras.
+ * Regla:
+ * - cantidad de letras del nombre completo (letrasSolo.length).
+ *
+ * @param {object} ctx
+ * @returns {{valor:number}}
+ */
+function calcCicloLetras(ctx) {
+  return { valor: ctx.letrasSolo.length };
+}
+
+/**
+ * Resultado 7: Clave Personal.
+ * Regla:
+ * - usa TABLA_CLAVE_PERSONAL[mes][dia]
+ * - no reduce.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number|null}}
+ */
+function calcClavePersonal(ctx) {
+  if (!ctx.fechaNacimientoISO || !ctx.mesNac || !ctx.diaNac) return { valor: null };
+  const mesesLower = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const mesNombre = mesesLower[ctx.mesNac - 1];
+  const valor = TABLA_CLAVE_PERSONAL[mesNombre]?.[ctx.diaNac] ?? null;
+  return { valor };
+}
+
+/**
+ * Resultado 8: Letra L.
+ * Regla:
+ * - primera letra del primer nombre (ctx.nombres[0])
+ * - correlación alfabética A=1..Z=26.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number|null, letra:string|null}}
+ */
+function calcLetraLeccion(ctx) {
+  const letra = ctx.nombres?.charAt(0) || null;
+  if (!letra) return { valor: null, letra: null };
+  const valor = (letra >= "A" && letra <= "Z") ? (letra.charCodeAt(0) - 64) : null;
+  return { valor, letra };
+}
+
+/**
+ * Resultado 9: Regalo Divino.
+ * Regla:
+ * - toma los 2 últimos dígitos del año de nacimiento
+ * - reduce preservando maestros.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number|null}}
+ */
+function calcRegaloDivino(ctx) {
+  if (!ctx.anioNac) return { valor: null };
+  const ult2 = ctx.anioNac % 100;
+  return { valor: reducirNumero(ult2) };
+}
+
+/**
+ * Resultado 10: Etapas.
+ * Devuelve:
+ * - valores de cada etapa (e1..e4)
+ * - edades de transición calculadas desde Sendero Natal.
+ *
+ * @param {object} ctx
+ * @param {{senderoNatal:number}} resultsParciales
+ * @returns {{
+ *   rMes:number, rDia:number, rAnio:number,
+ *   e1:number, e2:number, e3:number, e4:number,
+ *   edades:{inicio1:number, fin1:number, inicio2:number, inicio3:number, inicio4:number}
+ * }}
+ */
+function calcEtapas(ctx, resultsParciales) {
+  if (!ctx.fechaNacimientoISO || !ctx.mesNac || !ctx.diaNac || !ctx.anioNac) {
+    return {
+      rMes: 0, rDia: 0, rAnio: 0,
+      e1: 0, e2: 0, e3: 0, e4: 0,
+      edades: { inicio1: 0, fin1: 36, inicio2: 37, inicio3: 46, inicio4: 55 }
+    };
+  }
+
+  const rMes = reducirFechaSN(ctx.mesNac);
+  const rDia = reducirFechaSN(ctx.diaNac);
+  const rAnio = reducirFechaSN(sumarDigitos(ctx.anioNac));
+  // const rMes = reducirNumero(ctx.mesNac);
+  // const rDia = reducirNumero(ctx.diaNac);
+  // const rAnio = reducirNumero(sumarDigitos(ctx.anioNac));
+
+  const reduceSum = (x) => esMaestro(x) ? x : reducirNumero(x);
+
+  const e1 = reduceSum(rMes + rDia);
+  const e2 = reduceSum(rDia + rAnio);
+  const e3 = reduceSum(e1 + e2);
+  const e4 = reduceSum(rMes + rAnio);
+
+  const sn = Number(resultsParciales.senderoNatal);
+  let edades;
+  if (Number.isFinite(sn) && sn > 0) {
+    const fin1 = 36 - sn;
+    const ini2 = fin1 + 1;
+    const fin2 = ini2 + 9;
+    const ini3 = fin2 + 1;
+    const fin3 = ini3 + 9;
+    const ini4 = fin3 + 1;
+    edades = { inicio1: 0, fin1, inicio2: ini2, inicio3: ini3, inicio4: ini4 };
+  } else {
+    edades = { inicio1: 0, fin1: 36, inicio2: 37, inicio3: 46, inicio4: 55 };
+  }
+
+  return { rMes, rDia, rAnio, e1, e2, e3, e4, edades };
+}
+
+/**
+ * Resultado 11: Ciclo de Vida.
+ * Regla:
+ * - según edad actual al día de fechaReferencia:
+ *   0–27 (y 81–107): usa mes
+ *   28–54 (y 108–134): usa día
+ *   55–80: usa año
+ *   >134: usa mes y marca warning visual (en renderer).
+ *
+ * @param {object} ctx
+ * @param {Date} [fechaReferencia=new Date()]
+ * @returns {{valor:number|null, edad:number|null, tramo:string|null}}
+ */
+function calcCicloVida(ctx, fechaReferencia = new Date()) {
+  if (!ctx.fechaNacimientoISO || !ctx.anioNac || !ctx.mesNac || !ctx.diaNac) {
+    return { valor: null, edad: null, tramo: null };
+  }
+
+  const edad = calcularEdadEnFecha(ctx.anioNac, ctx.mesNac, ctx.diaNac, fechaReferencia);
+
+  let valor = null;
+  let tramo = null;
+
+  if ((edad >= 0 && edad <= 27) || (edad >= 81 && edad <= 107)) {
+    valor = (ctx.mesNac === 11) ? 11 : reducirParaCV(ctx.mesNac);
+    tramo = "mes";
+  } else if ((edad >= 28 && edad <= 54) || (edad >= 108 && edad <= 134)) {
+    valor = reducirParaCV(ctx.diaNac);
+    tramo = "dia";
+  } else if (edad >= 55 && edad <= 80) {
+    valor = reducirParaCV(sumarDigitos(ctx.anioNac));
+    tramo = "anio";
+  } else if (edad > 134) {
+    valor = reducirParaCV(ctx.mesNac);
+    tramo = "warning";
+  }
+
+  return { valor, edad, tramo };
+}
+
+/**
+ * Resultado 12: Karmas.
+ * Detecta karmasPosibles en:
+ * - crudos principales (suma esencia cruda, imagen cruda, mundo crudo)
+ * - parciales reducidos por palabra (vocales, consonantes, mundo)
+ * - parciales RAW por palabra
+ * - totales RAW vocales/consonantes/mundo
+ * - sendero natal y potencial.
+ *
+ * @param {object} ctx
+ * @param {object} resultsParciales
+ * @returns {{karmas:number[], detalle:{...}}}
+ */
+function calcKarmas(ctx, resultsParciales) {
+  const karmasEncontrados = new Set();
+  const revisar = (v) => {
+    v = Number(v);
+    if (KARMAS_POSIBLES.includes(v)) karmasEncontrados.add(v);
+  };
+
+  const sumaVocalesCrudo = resultsParciales.esenciaCrudo ?? 0;
+  const sumaConsonantesCrudo = resultsParciales.imagenCrudo ?? 0;
+  const sumaMundoCrudo = resultsParciales.mundoCrudo ?? 0;
+
+  revisar(sumaVocalesCrudo);
+  revisar(sumaConsonantesCrudo);
+  revisar(sumaMundoCrudo);
+  revisar(resultsParciales.senderoNatal ?? 0);
+  revisar(resultsParciales.potencial ?? 0);
+
+  const vocalesRed = ctx.parciales.vocalesRed;
+  const consonantesRed = ctx.parciales.consonantesRed;
+  const mundosRed = vocalesRed.map((v, i) => reducirNumero(v + (consonantesRed[i] ?? 0)));
+
+  vocalesRed.forEach(revisar);
+  consonantesRed.forEach(revisar);
+  mundosRed.forEach(revisar);
+
+  const vocalesRaw = ctx.parciales.vocalesRaw;
+  const consonantesRaw = ctx.parciales.consonantesRaw;
+  const mundosRaw = vocalesRaw.map((v, i) => v + (consonantesRaw[i] ?? 0));
+
+  vocalesRaw.forEach(revisar);
+  consonantesRaw.forEach(revisar);
+  mundosRaw.forEach(revisar);
+
+  revisar(vocalesRaw.reduce((a, b) => a + b, 0));
+  revisar(consonantesRaw.reduce((a, b) => a + b, 0));
+  revisar(mundosRaw.reduce((a, b) => a + b, 0));
+
+  return {
+    karmas: [...karmasEncontrados].sort((a, b) => a - b),
+    detalle: {}
+  };
+}
+
+/**
+ * Resultado 13: Lecciones Kármicas.
+ * Regla:
+ * - contar ocurrencias de valores 1..9 en letrasSolo usando ALFABETO
+ * - devolver números faltantes.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number[], conteo:Record<number,number>}}
+ */
+function calcLeccionesKarmicas(ctx) {
+  const conteo = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
+  for (const l of ctx.letrasSolo) {
+    const v = ALFABETO[l];
+    if (v) conteo[v]++;
+  }
+  const faltan = [];
+  for (let i = 1; i <= 9; i++) if (conteo[i] === 0) faltan.push(i);
+  return { valor: faltan, conteo };
+}
+
+/**
+ * Resultados 14–16: Doble Dígito Vocales/Consonantes/Total.
+ * Regla:
+ * - sumar vocales RAW nombre completo => r14
+ * - sumar consonantes RAW => r15
+ * - r16 = r14+r15
+ *
+ * @param {object} ctx
+ * @returns {{ddVocales:number, ddConsonantes:number, ddTotal:number}}
+ */
+function calcDoblesDigitos(ctx) {
+  let ddVocales = 0, ddConsonantes = 0;
+  for (const l of ctx.letrasSolo) {
+    if (VOCALES_SET.has(l)) ddVocales += ALFABETO[l] || 0;
+    else if (/[A-ZÑ]/.test(l)) ddConsonantes += ALFABETO[l] || 0;
+  }
+  return { ddVocales, ddConsonantes, ddTotal: ddVocales + ddConsonantes };
+}
+
+/**
+ * Resultado 17: Doble Dígito Fecha.
+ * Regla:
+ * - sumar dígito a dígito de DDMMYYYY (sin reducir final).
+ *
+ * @param {object} ctx
+ * @returns {{valor:number|null}}
+ */
+function calcDobleDigitoFecha(ctx) {
+  if (!ctx.fechaNacimientoISO) return { valor: null };
+  const [anio, mes, dia] = ctx.fechaNacimientoISO.split("-");
+  const valor = sumarDigitos(dia + mes + anio);
+  return { valor };
+}
+
+/**
+ * Resultado 18: Arcano Natal.
+ * Regla:
+ * - día + mes + año reducido a dos cifras (suma dígitos del año)
+ * - sin reducir final.
+ *
+ * @param {object} ctx
+ * @returns {{valor:number|null}}
+ */
+function calcArcanoNatal(ctx) {
+  if (!ctx.fechaNacimientoISO || !ctx.anioNac || !ctx.mesNac || !ctx.diaNac) return { valor: null };
+  const valor = ctx.diaNac + ctx.mesNac + sumarDigitos(ctx.anioNac);
+  return { valor };
+}
+
+
+// --- Orquestación Base ---
+
+/**
+ * Ejecuta todo el cálculo Base 1–18.
+ * Debe ser pura: no toca DOM.
+ *
+ * @param {object} ctxBase
+ * @returns {{
+ *   esenciaIntima:ReturnType<calcEsenciaIntima>,
+ *   imagen:ReturnType<calcImagen>,
+ *   senderoMundo:ReturnType<calcSenderoMundo>,
+ *   senderoNatal:ReturnType<calcSenderoNatal>,
+ *   potencial:ReturnType<calcPotencial>,
+ *   cicloLetras:ReturnType<calcCicloLetras>,
+ *   clavePersonal:ReturnType<calcClavePersonal>,
+ *   letraLeccion:ReturnType<calcLetraLeccion>,
+ *   regaloDivino:ReturnType<calcRegaloDivino>,
+ *   etapas:ReturnType<calcEtapas>,
+ *   cicloVida:ReturnType<calcCicloVida>,
+ *   karmas:ReturnType<calcKarmas>,
+ *   leccionesKarmicas:ReturnType<calcLeccionesKarmicas>,
+ *   doblesDigitos:ReturnType<calcDoblesDigitos>,
+ *   dobleDigitoFecha:ReturnType<calcDobleDigitoFecha>,
+ *   arcanoNatal:ReturnType<calcArcanoNatal>
+ * }}
+ */
+function calcularBasePipeline(ctxBase) {
+  const esenciaIntima = calcEsenciaIntima(ctxBase);
+  const imagen = calcImagen(ctxBase);
+  const senderoMundo = calcSenderoMundo(ctxBase);
+  const senderoNatal = calcSenderoNatal(ctxBase);
+  const potencial = calcPotencial(ctxBase, {
+    senderoMundo: senderoMundo.valor,
+    senderoNatal: senderoNatal.valor
+  });
+  const cicloLetras = calcCicloLetras(ctxBase);
+  const clavePersonal = calcClavePersonal(ctxBase);
+  const letraLeccion = calcLetraLeccion(ctxBase);
+  const regaloDivino = calcRegaloDivino(ctxBase);
+  const etapas = calcEtapas(ctxBase, { senderoNatal: senderoNatal.valor });
+  const cicloVida = calcCicloVida(ctxBase);
+  const karmas = calcKarmas(ctxBase, {
+    esenciaCrudo: esenciaIntima.crudo,
+    imagenCrudo: imagen.crudo,
+    mundoCrudo: senderoMundo.crudo,
+    senderoNatal: senderoNatal.valor,
+    potencial: potencial.valor
+  });
+  const leccionesKarmicas = calcLeccionesKarmicas(ctxBase);
+  const doblesDigitos = calcDoblesDigitos(ctxBase);
+  const dobleDigitoFecha = calcDobleDigitoFecha(ctxBase);
+  const arcanoNatal = calcArcanoNatal(ctxBase);
+
+  return {
+    esenciaIntima,
+    imagen,
+    senderoMundo,
+    senderoNatal,
+    potencial,
+    cicloLetras,
+    clavePersonal,
+    letraLeccion,
+    regaloDivino,
+    etapas,
+    cicloVida,
+    karmas,
+    leccionesKarmicas,
+    doblesDigitos,
+    dobleDigitoFecha,
+    arcanoNatal
+  };
+}
+
+/**
+ * Renderiza los resultados Base en el DOM.
+ * Aquí se pintan inputs + spans detalle + tabla base kármica.
+ *
+ * @param {ReturnType<calcularBasePipeline>} resultsBase
+ * @param {object} ctxBase
+ */
+function renderBaseResults(resultsBase, ctxBase) {
+  // 1–3 ya NO se pintan en inputs ni detalles sueltos
+  // porque viven dentro de la tabla kármica.
+
+  // 1 Esencia Íntima
+  // setValue("esenciaIntima", resultsBase.esenciaIntima.valor ?? "");
+  // pintarDetalle("esenciaIntimaDetalle", resultsBase.esenciaIntima.crudo, resultsBase.esenciaIntima.valor);
+
+  // 2 Imagen
+  // setValue("imagen", resultsBase.imagen.valor ?? "");
+  // pintarDetalle("imagenDetalle", resultsBase.imagen.crudo, resultsBase.imagen.valor);
+
+  // 3 Sendero del Mundo
+  // setValue("serMundo", resultsBase.senderoMundo.valor ?? "");
+  // pintarDetalle("serMundoDetalle", resultsBase.senderoMundo.crudo, resultsBase.senderoMundo.valor);
+
+  // 4 Sendero Natal -> solo detalle debajo de tabla
+  // (si dejaste input hidden, no molesta)
+  setValue("senderoNatal", resultsBase.senderoNatal.valor ?? "");
+  pintarDetalle("senderoNatalDetalle", resultsBase.senderoNatal.crudo, resultsBase.senderoNatal.valor);
+
+  // 5 Potencial -> solo detalle debajo de tabla
+  setValue("potencial", resultsBase.potencial.valor ?? "");
+  pintarDetalle("potencialDetalle", resultsBase.potencial.crudo, resultsBase.potencial.valor);
+
+  // 6 Ciclo Letras
+  setValue("cicloLetras", resultsBase.cicloLetras.valor ?? "");
+
+  // 7 Clave Personal
+  setValue("clavePersonal", resultsBase.clavePersonal.valor ?? "");
+
+  // 8 Letra L
+  setValue("letraLeccion", resultsBase.letraLeccion.valor ?? "");
+
+  // 9 Regalo Divino
+  setValue("regaloDivino", resultsBase.regaloDivino.valor ?? "");
+
+  // 10 Etapas
+  const et = resultsBase.etapas;
+  setText("etapa1_izq", et.rMes);
+  setText("etapa1_centro", et.rDia);
+  setText("etapa1_der", et.rAnio);
+  setText("etapa2_izq", et.e1);
+  setText("etapa2_der", et.e2);
+  setText("etapa3", et.e3);
+  setText("etapa4", et.e4);
+
+  const edades = et.edades;
+  setText("etapaTexto1", `De ${edades.inicio1} a ${edades.fin1} - ${et.e1}`);
+  setText("etapaTexto2", `De ${edades.inicio2} a ${edades.inicio3 - 1} - ${et.e2}`);
+  setText("etapaTexto3", `De ${edades.inicio3} a ${edades.inicio4 - 1} - ${et.e3}`);
+  setText("etapaTexto4", `Desde ${edades.inicio4} en adelante - ${et.e4}`);
+
+  // 11 Ciclo de Vida
+  setValue("cicloVida", resultsBase.cicloVida.valor ?? "");
+  toggleClass("cicloVida", "text-danger", resultsBase.cicloVida.tramo === "warning");
+
+  // 12 Karmas
+  setValue("karmas", resultsBase.karmas.karmas.join(", ") || "—");
+
+  // 13 Lecciones Kármicas
+  setValue("leccionesKarmicas", resultsBase.leccionesKarmicas.valor.join(", ") || "—");
+
+  // 14-16 Dobles Dígitos
+  setValue("dobleDigitoVocales", resultsBase.doblesDigitos.ddVocales);
+  setValue("dobleDigitoConsonantes", resultsBase.doblesDigitos.ddConsonantes);
+  setValue("dobleDigitoTotal", resultsBase.doblesDigitos.ddTotal);
+
+  // 17 DD Fecha
+  setValue("dobleDigitoFecha", resultsBase.dobleDigitoFecha.valor ?? "");
+
+  // 18 Arcano Natal
+  setValue("ArcanoNatal", resultsBase.arcanoNatal.valor ?? "");
+
+  // Tabla Base Kármica
+  const tablaData = buildTablaBaseKarmicaData(ctxBase, resultsBase);
+  renderTablaBaseKarmica(tablaData);
+}
+
+
+/* ==========================
+   5) PIPELINE PREDICTIVA (19–31)
+========================== */
+
+// --- Inputs / Context ---
+
+/**
+ * Lee inputs predictivos desde el DOM:
+ * - fechaNacimientoISO
+ * - anioEnCursoISO (input date)
+ *
+ * @returns {{
+ *   fechaNacimientoISO:string,
+ *   fechaEnCursoISO:string
+ * }}
+ */
+function getPredictivaInputsFromDOM() {
+  return {
+    fechaNacimientoISO: $("fechaNacimiento")?.value ?? "",
+    fechaEnCursoISO: $("anioEnCurso")?.value ?? ""
+  };
+}
+
+/**
+ * Construye contexto predictivo combinando:
+ * - inputs predictivos
+ * - ctxBase y resultsBase ya calculados
+ *
+ * Incluye:
+ * - fechaEnCurso Date
+ * - anioEnCurso number
+ * - edadActual en fechaEnCurso
+ * - senderoNatalRaw recalculado con regla SN
+ * - clavePersonalRaw desde resultsBase
+ *
+ * @param {ReturnType<getPredictivaInputsFromDOM>} inputs
+ * @param {object} ctxBase
+ * @param {ReturnType<calcularBasePipeline>} resultsBase
+ * @returns {{
+ *   fechaNacimientoISO:string,
+ *   fechaEnCurso:Date,
+ *   anioEnCurso:number,
+ *   anioNac:number, mesNac:number, diaNac:number,
+ *   nombreCompleto:string, letrasSolo:string,
+ *   clavePersonalRaw:number|null,
+ *   senderoNatalRaw:number|null
+ * }}
+ */
+function buildPredictivaContext(inputs, ctxBase, resultsBase) {
+  const fechaEnCurso = parseFechaISO(inputs.fechaEnCursoISO);
+  const anioEnCurso = fechaEnCurso ? getAnio(fechaEnCurso) : NaN;
+
+  const anioNac = ctxBase.anioNac;
+  const mesNac = ctxBase.mesNac;
+  const diaNac = ctxBase.diaNac;
+
+  // recalcular sendero natal raw con regla SN (igual que base)
+  let senderoNatalRaw = null;
+  if (anioNac && mesNac && diaNac) {
+    const mesR = reducirFechaSN(mesNac);
+    const diaR = reducirFechaSN(diaNac);
+    const anioR = reducirFechaSN(sumarDigitos(anioNac));
+    const sumaSN = mesR + diaR + anioR;
+    senderoNatalRaw = (sumaSN === 33) ? 6 : reducirNumero(sumaSN);
+  }
+
+  const clavePersonalRaw = resultsBase?.clavePersonal?.valor ?? null;
+
+  return {
+    fechaNacimientoISO: inputs.fechaNacimientoISO,
+    fechaEnCurso,
+    anioEnCurso,
+    anioNac, mesNac, diaNac,
+    nombreCompleto: ctxBase.nombreCompleto,
+    letrasSolo: soloLetras(ctxBase.nombreCompleto),
+    clavePersonalRaw,
+    senderoNatalRaw
+  };
+}
+
+
+// --- Cálculos individuales ---
+
+/**
+ * Resultado 19: Año Personal.
+ * Regla:
+ * - mesReducido + diaReducido + anioEnCursoReducido
+ * - reduce preservando maestros.
+ *
+ * @param {object} ctxP
+ * @returns {{valor:number|null, crudo:number|null, partes:{mes:number,dia:number,anio:number}}}
+ */
+function calcAnioPersonal(ctxP) {
+  if (!ctxP.mesNac || !ctxP.diaNac || !Number.isFinite(ctxP.anioEnCurso)) {
+    return { valor: null, crudo: null, partes: { mes: 0, dia: 0, anio: 0 } };
+  }
+  const mesR = reducirNumero(ctxP.mesNac);
+  const diaR = reducirNumero(ctxP.diaNac);
+  const anioR = reducirNumero(sumarDigitos(ctxP.anioEnCurso));
+  const crudo = mesR + diaR + anioR;
+  const valor = esMaestro(crudo) ? crudo : reducirNumero(crudo);
+  return { valor, crudo, partes: { mes: mesR, dia: diaR, anio: anioR } };
+}
+
+/**
+ * Resultado 21: Edad Actual (en fechaEnCurso).
+ * Regla:
+ * - misma que calcularEdadEnFecha().
+ *
+ * @param {object} ctxP
+ * @returns {{valor:number|null, yaCumplio:boolean|null}}
+ */
+function calcEdadActual(ctxP) {
+  if (!ctxP.fechaEnCurso || !ctxP.anioNac || !ctxP.mesNac || !ctxP.diaNac) {
+    return { valor: null, yaCumplio: null };
+  }
+  const yaCumplio = yaCumplioEnFecha(ctxP.fechaEnCurso, ctxP.mesNac, ctxP.diaNac);
+  const valor = calcularEdadEnFecha(ctxP.anioNac, ctxP.mesNac, ctxP.diaNac, ctxP.fechaEnCurso);
+  return { valor, yaCumplio };
+}
+
+/**
+ * Resultado 20: Dígito de Edad.
+ * Regla:
+ * - edadAntes = edadActual
+ * - edadDespues = edadActual + 1
+ * - reducirNumero(edadAntes) + reducirNumero(edadDespues)
+ * - reducir final preservando maestros.
+ *
+ * @param {object} ctxP
+ * @returns {{valor:number|null, crudo:number|null, edades:{antes:number, despues:number}}}
+ */
+function calcDigitoEdad(ctxP) {
+  const edadActual = ctxP.edadActual;
+  if (!Number.isFinite(edadActual)) {
+    return { valor: null, crudo: null, edades: { antes: 0, despues: 0 } };
+  }
+  const antes = edadActual;
+  const despues = edadActual + 1;
+  const suma = reducirNumero(antes) + reducirNumero(despues);
+  const valor = esMaestro(suma) ? suma : reducirNumero(suma);
+  return { valor, crudo: suma, edades: { antes, despues } };
+}
+
+/**
+ * Resultado 22: Mes Personal.
+ * Regla:
+ * - mes actual real (Date.now) reducido
+ * - anioPersonal + mesReducido => reducir final.
+ *
+ * @param {object} ctxP
+ * @param {number} anioPersonal
+ * @returns {{valor:number|null, crudo:number|null, mesActual:number}}
+ */
+function calcMesPersonal(ctxP, anioPersonal) {
+  if (!Number.isFinite(anioPersonal)) return { valor: null, crudo: null, mesActual: null };
+  const mesActualReal = new Date().getMonth() + 1;
+  const mesR = reducirNumero(mesActualReal);
+  const crudo = anioPersonal + mesR;
+  const valor = esMaestro(crudo) ? crudo : reducirNumero(crudo);
+  return { valor, crudo, mesActual: mesActualReal };
+}
+
+/**
+ * Resultado 23: Tránsito de Letra.
+ * Regla:
+ * - recorre letrasSolo circularmente
+ * - cada letra dura ALFABETO[letra] años
+ * - según edadActual, se devuelve letra vigente.
+ *
+ * @param {object} ctxP
+ * @param {number} edadActual
+ * @returns {{valor:string|null}}
+ */
+function calcTransitoLetra(ctxP, edadActual) {
+  const letras = ctxP.letrasSolo || "";
+  if (!letras) return { valor: "—" };
+
+  let acumulado = 0;
+  let letraActual = letras[0];
+
+  for (let i = 0; i < 500; i++) {
+    const letra = letras[i % letras.length];
+    const valor = ALFABETO[letra] || 0;
+    if (valor === 0) continue;
+
+    const siguiente = acumulado + valor;
+    if (edadActual >= acumulado && edadActual < siguiente) {
+      letraActual = letra;
+      break;
+    }
+    acumulado = siguiente;
+  }
+
+  return { valor: letraActual };
+}
+
+
+// --- Armónicos / Cuatrimestres ---
+
+/**
+ * Reducción a un dígito usada en Armónicos básicos.
+ * Igual a reducirADigito() local de old_predictiva.
+ *
+ * @param {number} n
+ * @returns {number}
+ */
+function reducirADigitoParaArmonicos(n) {
+  return reducirEstrictoADigito(n);
+}
+
+/**
+ * Armónico básico (Resultados 24–27).
+ * Reglas:
+ * - suma = anioActual + valor
+ * - si suma < 2000 => sumar dígitos del número completo
+ * - si >= 2000 => (primerosDos) + reducirADigito(ultimosDos)
+ *
+ * @param {number} valor
+ * @param {number} anioActual
+ * @returns {number}
+ */
+function armonicoBasico(valor, anioActual) {
+  const suma = anioActual + valor;
+  if (suma < 2000) return sumarDigitos(suma);
+
+  const str = suma.toString();
+  const primerosDos = parseInt(str.slice(0, 2), 10);
+  const ultimosDos = parseInt(str.slice(2), 10);
+  const reducidos = reducirADigitoParaArmonicos(ultimosDos);
+  return primerosDos + reducidos;
+}
+
+/**
+ * Armónico extendido (Resultados 28,30,31).
+ * Reglas:
+ * - suma = anioActual + valor
+ * - si suma < 2000 => sumar dígitos del número completo
+ * - si >=2000 => primerosDos + ultimosDos (sin reducir)
+ * - si total > 78 => sumar dígitos del número completo
+ *
+ * @param {number} valor
+ * @param {number} anioActual
+ * @returns {number}
+ */
+function armonicoExtendido(valor, anioActual) {
+  const suma = anioActual + valor;
+  if (suma < 2000) return sumarDigitos(suma);
+
+  const str = suma.toString();
+  const primerosDos = parseInt(str.slice(0, 2), 10);
+  const ultimosDos = parseInt(str.slice(2), 10);
+  const total = primerosDos + ultimosDos;
+
+  return total <= 78 ? total : sumarDigitos(suma);
+}
+
+/**
+ * Calcula r24–r27:
+ * - r24 (armónico) = anioEnCurso + ddAnioNacimiento
+ * - r25 = anioEnCurso + edadActual
+ * - r26 = anioEnCurso + senderoNatalRaw
+ * - r27 = anioEnCurso + clavePersonalRaw
+ *
+ * @param {object} ctxP
+ * @param {number} edadActual
+ * @returns {{r24:number,r25:number,r26:number,r27:number}}
+ */
+function calcArmonicosBasicos(ctxP, edadActual) {
+  const ddAnioNac = ctxP.anioNac ? sumarDigitos(ctxP.anioNac) : 0;
+  const r24 = armonicoBasico(ddAnioNac, ctxP.anioEnCurso);
+  const r25 = armonicoBasico(edadActual, ctxP.anioEnCurso);
+  const r26 = armonicoBasico(ctxP.senderoNatalRaw || 0, ctxP.anioEnCurso);
+  const r27 = armonicoBasico(ctxP.clavePersonalRaw || 0, ctxP.anioEnCurso);
+  return { r24, r25, r26, r27 };
+}
+
+/**
+ * Calcula r28–r31:
+ * - r28 = armonicoExtendido(ddAnioNac)
+ * - r29 = regla especial (ver calcResultado29)
+ * - r30 = armonicoExtendido(senderoNatalRaw)
+ * - r31 = armonicoExtendido(clavePersonalRaw)
+ *
+ * @param {object} ctxP
+ * @param {number} edadActual
+ * @returns {{r28:number,r29:number,r30:number,r31:number}}
+ */
+function calcArmonicosExtendidos(ctxP, edadActual) {
+  const ddAnioNac = ctxP.anioNac ? sumarDigitos(ctxP.anioNac) : 0;
+  const r28 = armonicoExtendido(ddAnioNac, ctxP.anioEnCurso);
+  const r29 = calcResultado29(ctxP, edadActual);
+  const r30 = armonicoExtendido(ctxP.senderoNatalRaw || 0, ctxP.anioEnCurso);
+  const r31 = armonicoExtendido(ctxP.clavePersonalRaw || 0, ctxP.anioEnCurso);
+  return { r28, r29, r30, r31 };
+}
+
+/**
+ * Resultado 29 especial:
+ * - suma29 = anioEnCurso + edadActual
+ * - total29 = primerosDos + ultimosDos
+ * - si total29 > 78 => sumar dígitos del número completo
+ *
+ * @param {object} ctxP
+ * @param {number} edadActual
+ * @returns {number}
+ */
+function calcResultado29(ctxP, edadActual) {
+  const suma29 = ctxP.anioEnCurso + edadActual;
+  const str = suma29.toString();
+  const primerosDos = parseInt(str.slice(0, 2), 10);
+  const ultimosDos = parseInt(str.slice(2), 10);
+  let total = primerosDos + ultimosDos;
+  if (total > 78) total = sumarDigitos(suma29);
+  return total;
+}
+
+
+// --- Orquestación Predictiva ---
+
+/**
+ * Ejecuta cálculo Predictivo 19–31.
+ * No toca DOM.
+ *
+ * @param {object} ctxP
+ * @returns {{
+ *   anioPersonal:ReturnType<calcAnioPersonal>,
+ *   edadActual:ReturnType<calcEdadActual>,
+ *   digitoEdad:ReturnType<calcDigitoEdad>,
+ *   mesPersonal:ReturnType<calcMesPersonal>,
+ *   transitoLetra:ReturnType<calcTransitoLetra>,
+ *   armonicosBasicos:ReturnType<calcArmonicosBasicos>,
+ *   armonicosExtendidos:ReturnType<calcArmonicosExtendidos>
+ * }}
+ */
+function calcularPredictivaPipeline(ctxP) {
+  const anioPersonal = calcAnioPersonal(ctxP);
+  const edadActualObj = calcEdadActual(ctxP);
+  const edadActual = edadActualObj.valor ?? NaN;
+  ctxP.edadActual = edadActual;
+
+  const digitoEdad = calcDigitoEdad(ctxP);
+  const mesPersonal = calcMesPersonal(ctxP, anioPersonal.valor ?? NaN);
+  const transitoLetra = calcTransitoLetra(ctxP, edadActual);
+
+  const armonicosBasicos = calcArmonicosBasicos(ctxP, edadActual);
+  const armonicosExtendidos = calcArmonicosExtendidos(ctxP, edadActual);
+
+  return {
+    anioPersonal,
+    edadActual: edadActualObj,
+    digitoEdad,
+    mesPersonal,
+    transitoLetra,
+    armonicosBasicos,
+    armonicosExtendidos
+  };
+}
+
+/**
+ * Renderiza resultados Predictivos:
+ * - inputs/spans 19–23
+ * - spans resultado24..31
+ * - cabeceras cuatrimestres
+ *
+ * @param {ReturnType<calcularPredictivaPipeline>} resultsP
+ * @param {object} ctxP
+ */
+function renderPredictivaResults(resultsP, ctxP) {
+  actualizarCabecerasCuatrimestres(ctxP.fechaNacimientoISO);
+
+  // 19 Año Personal
+  const ap = resultsP.anioPersonal;
+  setValue("labelanioPersonal", ap.partes ? `${ap.partes.dia} + ${ap.partes.mes} + ${ap.partes.anio}` : "");
+  setValue("anioPersonal", ap.valor ?? "");
+
+  // 20 Dígito de Edad
+  setValue("digitoEdad", resultsP.digitoEdad.valor ?? "");
+  if (resultsP.digitoEdad.edades) {
+    setText("digitoEdadTexto", `20. Dígito de Edad ${resultsP.digitoEdad.edades.antes} + ${resultsP.digitoEdad.edades.despues} →`);
+  }
+
+  // 21 Edad Actual
+  setValue("edadActual", resultsP.edadActual.valor ?? "");
+
+  // 22 Mes Personal
+  setValue("mesPersonal", resultsP.mesPersonal.valor ?? "");
+
+  // 23 Tránsito de letra
+  setValue("transitoLetra", resultsP.transitoLetra.valor ?? "—");
+
+  // 24–31
+  const b = resultsP.armonicosBasicos;
+  const e = resultsP.armonicosExtendidos;
+
+  setText("resultado24", b.r24);
+  setText("resultado25", b.r25);
+  setText("resultado26", b.r26);
+  setText("resultado27", b.r27);
+
+  setText("resultado28", e.r28);
+  setText("resultado29", e.r29);
+  setText("resultado30", e.r30);
+  setText("resultado31", e.r31);
+}
+
+
+/* ==========================
+   6) PIPELINE ABRACADABRA (32)
+========================== */
+
+// --- Inputs / Context ---
+
+/**
+ * Lee inputs necesarios para Abracadabra desde DOM.
+ * Usa nombres/apellidos.
+ *
+ * @returns {{nombresRaw:string, apellidosRaw:string}}
+ */
+function getAbracadabraInputsFromDOM() {
+  return {
+    nombresRaw: $("nombres")?.value ?? "",
+    apellidosRaw: $("apellidos")?.value ?? ""
+  };
+}
+
+/**
+ * Construye contexto Abracadabra:
+ * - nombreCompletoSinEspacios (solo letras)
+ * - primeras9 (slice + padEnd)
+ *
+ * @param {ReturnType<getAbracadabraInputsFromDOM>} inputs
+ * @returns {{nombreCompletoSinEspacios:string, primeras9:string}}
+ */
+function buildAbracadabraContext(inputs) {
+  const nombreCompleto = obtenerNombreCompletoNormalizado(inputs.nombresRaw, inputs.apellidosRaw);
+  const nombreCompletoSinEspacios = soloLetras(nombreCompleto);
+  const primeras9 = nombreCompletoSinEspacios.slice(0, 9).padEnd(9, " ");
+  return { nombreCompletoSinEspacios, primeras9 };
+}
+
+
+// --- Cálculos ---
+
+/**
+ * Calcula Fila 1 Abracadabra:
+ * - toma ctxA.primeras9
+ * - mapea cada letra a valor ALFABETO (si espacio => 0)
+ *
+ * @param {object} ctxA
+ * @returns {{fila1:number[], letras:string[]}}
+ */
+function calcAbracadabraFila1(ctxA) {
+  const letras = ctxA.primeras9.split("");
+  const fila1 = letras.map(l => ALFABETO[l] || 0);
+  return { fila1, letras };
+}
+
+/**
+ * Calcula filas 2..9:
+ * - cada celda = reducirEstrictoADigito(suma de dos superiores)
+ * - sin maestros.
+ *
+ * @param {number[]} fila1
+ * @returns {number[][]} filas completas (incluye fila1 como primer elemento).
+ */
+function calcAbracadabraFilas2a9(fila1) {
+  const filas = [fila1];
+  for (let f = 2; f <= 9; f++) {
+    const anterior = filas[f - 2];
+    const actual = [];
+    for (let c = 0; c < anterior.length - 1; c++) {
+      const suma = anterior[c] + anterior[c + 1];
+      actual.push(reducirEstrictoADigito(suma));
+    }
+    filas.push(actual);
+  }
+  return filas;
+}
+
+/**
+ * Calcula rX_sum:
+ * - total fila
+ * - primera reducción sumando dígitos
+ * - segunda reducción si >=10
+ * - devuelve string "total/primera/segunda"
+ *
+ * @param {number[][]} filas
+ * @returns {string[]} sumas por fila.
+ */
+function calcAbracadabraSumas(filas) {
+  return filas.map(fila => {
+    const total = fila.reduce((a, b) => a + b, 0);
+    const primera = sumarDigitos(total);
+    const segunda = primera >= 10 ? sumarDigitos(primera) : primera;
+    return `${total}/${primera}/${segunda}`;
+  });
+}
+
+/**
+ * Orquestador Abracadabra:
+ * ctxA -> calcFila1 -> calcFilas2a9 -> calcSumas
+ *
+ * @param {object} ctxA
+ * @returns {{
+ *   letrasFila1:string[],
+ *   filas:number[][],
+ *   sumas:string[]
+ * }}
+ */
+function calcularAbracadabraPipeline(ctxA) {
+  const { fila1, letras } = calcAbracadabraFila1(ctxA);
+  const filas = calcAbracadabraFilas2a9(fila1);
+  const sumas = calcAbracadabraSumas(filas);
+  return { letrasFila1: letras, filas, sumas };
+}
+
+/**
+ * Renderiza Abracadabra:
+ * - letras en abracadabra_nombre_i
+ * - valores fila1 en r1cX_abracadabra_valor_X
+ * - resto de celdas rFcC
+ * - sumas rX_sum
+ *
+ * @param {ReturnType<calcularAbracadabraPipeline>} resultsA
+ * @param {object} ctxA
+ */
+function renderAbracadabraResults(resultsA, ctxA) {
+  const { letrasFila1, filas, sumas } = resultsA;
+
+  // Fila 1 letras + valores
+  for (let i = 0; i < 9; i++) {
+    setText(`abracadabra_nombre_${i + 1}`, letrasFila1[i] === " " ? "" : letrasFila1[i]);
+    setText(`r1c${i + 1}_abracadabra_valor_${i + 1}`, filas[0][i] ?? "");
+  }
+
+  // Filas 2..9 valores
+  for (let f = 2; f <= 9; f++) {
+    const fila = filas[f - 1];
+    for (let c = 0; c < fila.length; c++) {
+      setText(`r${f}c${c + 1}`, fila[c] ?? "");
+    }
+  }
+
+  // Sumas rX_sum
+  for (let i = 0; i < sumas.length; i++) {
+    setText(`r${i + 1}_sum`, sumas[i]);
+  }
+}
+
+
+/* ==========================
+   7) ATAJOS DE TECLADO / TOASTS
+========================== */
+
+/**
+ * Muestra toast flotante no intrusivo.
+ * Misma UI que old_numerologia.js.
+ *
+ * @param {string} mensaje
+ */
 function mostrarToast(mensaje) {
   const aviso = document.createElement("div");
   aviso.textContent = mensaje;
@@ -59,29 +2156,170 @@ function mostrarToast(mensaje) {
   setTimeout(() => (aviso.style.opacity = "0"), 1800);
   setTimeout(() => aviso.remove(), 2200);
 }
-*/
 
-// === LOGIN SIMPLE LOCAL ===
-const overlay = document.getElementById("login-overlay");
-const btnLogin = document.getElementById("btnLogin");
-const inputEmail = document.getElementById("loginEmail");
-const inputPassword = document.getElementById("loginPassword");
-const loginError = document.getElementById("loginError");
+/**
+ * Inicializa atajos:
+ * Alt+C => calcular todo
+ * Alt+P => solo predictiva
+ * Alt+L => logout
+ * Alt+M => modo oscuro
+ * Alt+Z => limpiar (pendiente)
+ *
+ * Debe ignorar si foco está en input/textarea.
+ * Consideración futura: capturas de mouse (pendiente tu TODO).
+ */
+function initKeyboardShortcuts() {
+  document.addEventListener("keydown", (e) => {
+    const activo = document.activeElement?.tagName?.toLowerCase();
+    if (activo === "input" || activo === "textarea") return;
 
-// Usuarios permitidos (puedes editar aquí)
-const usuariosPermitidos = [
-  { email: "guido", password: "123" },
+    if (e.altKey) {
+      switch (e.key.toLowerCase()) {
+        case "c":
+          e.preventDefault();
+          $("btnCalcular")?.click();
+          mostrarToast("🔮 Cálculo completo ejecutado (Alt + C)");
+          break;
+        case "p":
+          e.preventDefault();
+          $("btnCalcularPredictiva")?.click();
+          mostrarToast("📆 Cálculo predictivo ejecutado (Alt + P)");
+          break;
+        case "l":
+          e.preventDefault();
+          $("btnLogout")?.click();
+          mostrarToast("🚪 Sesión cerrada (Alt + L)");
+          break;
+        case "m":
+          e.preventDefault();
+          $("toggleModo")?.click();
+          mostrarToast("🌗 Modo visual cambiado (Alt + M)");
+          break;
+        case "z":
+          e.preventDefault();
+          limpiarInputsYResultados();
+          mostrarToast("🧹 Limpieza completa (Alt + Z)");
+          break;
+        default:
+          break;
+      }
+    }
+  });
+}
+
+/**
+ * Limpia todos los inputs/resultados y vuelve foco a "nombres".
+ * Se dispara con Alt+Z.
+ * Debe:
+ * - resetear inputs de resultados base/predictiva/abracadabra
+ * - limpiar spans detalle y tablas
+ * - resetear campos del formulario principal
+ */
+function limpiarInputsYResultados() {
+  // limpiar formulario principal
+  setValue("nombres", "");
+  setValue("apellidos", "");
+  setValue("fechaNacimiento", "");
+  setValue("anioEnCurso", "");
+
+  // limpiar inputs resultados base/predictiva
+  const idsInputs = [
+    "esenciaIntima","imagen","serMundo","senderoNatal","potencial",
+    "cicloLetras","clavePersonal","letraLeccion","regaloDivino",
+    "cicloVida","karmas","leccionesKarmicas",
+    "dobleDigitoVocales","dobleDigitoConsonantes","dobleDigitoTotal",
+    "dobleDigitoFecha","ArcanoNatal",
+    "labelanioPersonal","anioPersonal","digitoEdad","edadActual",
+    "mesPersonal","transitoLetra"
+  ];
+  idsInputs.forEach(id => setValue(id, ""));
+
+  // spans detalle base
+  ["esenciaIntimaDetalle","imagenDetalle","serMundoDetalle","senderoNatalDetalle","potencialDetalle"]
+    .forEach(id => setHTML(id, ""));
+
+  // etapas
+  ["etapa1_izq","etapa1_centro","etapa1_der","etapa2_izq","etapa2_der","etapa3","etapa4",
+   "etapaTexto1","etapaTexto2","etapaTexto3","etapaTexto4"]
+    .forEach(id => setText(id, ""));
+
+  // cuatrimestres headers + resultados 24-31
+  ["cuatri1-header","cuatri2-header","cuatri3-header"].forEach(id => setText(id, ""));
+  ["resultado24","resultado25","resultado26","resultado27","resultado28","resultado29","resultado30","resultado31"]
+    .forEach(id => setText(id, ""));
+
+  // tabla base karmica
+  // const tabla = $("tablaBaseKarma");
+  // if (tabla) tabla.innerHTML = "";
+  renderTablaBaseKarmicaPlaceholder();
+
+  // Abracadabra celdas
+  for (let i = 1; i <= 9; i++) {
+    setText(`abracadabra_nombre_${i}`, "");
+    setText(`r1c${i}_abracadabra_valor_${i}`, "");
+    setText(`r${i}_sum`, "");
+  }
+  for (let f = 2; f <= 9; f++) {
+    for (let c = 1; c <= (10 - f); c++) {
+      setText(`r${f}c${c}`, "");
+    }
+  }
+
+  // foco
+  $("nombres")?.focus();
+}  // Alt+Z (pendiente)
+
+
+/* ==========================
+   8) LOGIN SIMPLE LOCAL
+========================== */
+
+/**
+ * Usuarios locales permitidos.
+ * Estructura: {email:string,password:string}
+ */
+const USUARIOS_PERMITIDOS = [
+  { email: "admin", password: "admin" },
   { email: "martin", password: "123" },
   { email: "demo", password: "123" }
 ];
 
-// Si ya hay sesión activa, ocultar el login
-if (localStorage.getItem("usuarioAutenticado")) {
-  overlay.style.display = "none";
+/**
+ * Inicializa login local:
+ * - si hay usuarioAutenticado en localStorage => oculta overlay
+ * - engancha listener al botón Entrar
+ * - engancha listener a Logout
+ */
+function initLogin() {
+  const overlay = $("login-overlay");
+  const btnLogin = $("btnLogin");
+  if (!overlay || !btnLogin) return;
+
+  if (localStorage.getItem("usuarioAutenticado")) {
+    overlay.style.display = "none";
+  }
+
+  btnLogin.addEventListener("click", handleLoginSubmit);
+  $("btnLogout")?.addEventListener("click", handleLogout);
 }
 
-// Clic en "Entrar"
-btnLogin.addEventListener("click", () => {
+/**
+ * Maneja submit de login:
+ * - valida campos
+ * - busca en USUARIOS_PERMITIDOS
+ * - guarda en localStorage
+ * - anima y oculta overlay
+ * - muestra mensajes de error
+ */
+function handleLoginSubmit() {
+  const overlay = $("login-overlay");
+  const inputEmail = $("loginEmail");
+  const inputPassword = $("loginPassword");
+  const loginError = $("loginError");
+  const btnLogin = $("btnLogin");
+
+  if (!overlay || !inputEmail || !inputPassword || !loginError || !btnLogin) return;
+
   const email = inputEmail.value.trim().toLowerCase();
   const password = inputPassword.value.trim();
 
@@ -91,1103 +2329,126 @@ btnLogin.addEventListener("click", () => {
     return;
   }
 
-  const user = usuariosPermitidos.find(u =>
+  const user = USUARIOS_PERMITIDOS.find(u =>
     u.email.toLowerCase() === email && u.password === password
   );
 
   if (user) {
-    // Guardamos la sesión
     localStorage.setItem("usuarioAutenticado", email);
-
-    // Mostramos mensaje opcional
     loginError.style.display = "none";
 
-    // Animación de cierre (suave)
-    // Animación de cierre (suave y desbloqueo total)
     overlay.style.transition = "opacity 0.6s ease";
     overlay.style.opacity = "0";
-    overlay.style.pointerEvents = "none"; // Desactiva clics inmediatamente
+    overlay.style.pointerEvents = "none";
     setTimeout(() => {
-    overlay.style.display = "none"; // Lo elimina visualmente del flujo
-    }, 600); // Espera a que termine la animación
-
-
+      overlay.style.display = "none";
+    }, 600);
   } else {
     loginError.textContent = "Acceso denegado";
     loginError.style.display = "block";
   }
-});
+}
 
-document.getElementById("btnLogout")?.addEventListener("click", () => {
+/**
+ * Maneja logout:
+ * - borra usuarioAutenticado
+ * - recarga página
+ */
+function handleLogout() {
   localStorage.removeItem("usuarioAutenticado");
   location.reload();
-});
+}
+
+
+/* ==========================
+   9) TEMA OSCURO / UI
+========================== */
+
+/**
+ * Inicializa el botón de modo oscuro:
+ * - toggle dark-mode en #body
+ * - cambia icono 🌙 / 🌞
+ */
+function initThemeToggle() {
+  const btn = $("toggleModo");
+  const body = $("body");
+  if (!btn || !body) return;
+
+  btn.addEventListener("click", () => {
+    body.classList.toggle("dark-mode");
+    btn.textContent = body.classList.contains("dark-mode") ? "🌞" : "🌙";
+  });
+}
+
+
+/* ==========================
+   10) LISTENERS / ENTRADA
+========================== */
+
+/**
+ * Flujo principal "Calcular todo":
+ * - lee inputs base y predictiva
+ * - build ctxBase -> calcularBasePipeline -> renderBaseResults
+ * - build ctxP -> calcularPredictivaPipeline -> renderPredictivaResults
+ * - build ctxA -> calcularAbracadabraPipeline -> renderAbracadabraResults
+ */
+function mainCalcularTodo() {
+  const inputsBase = getBaseInputsFromDOM();
+  const ctxBase = buildBaseContext(inputsBase);
+  const resultsBase = calcularBasePipeline(ctxBase);
+  renderBaseResults(resultsBase, ctxBase);
+
+  const inputsP = getPredictivaInputsFromDOM();
+  const ctxP = buildPredictivaContext(inputsP, ctxBase, resultsBase);
+  if (ctxP.fechaEnCurso && Number.isFinite(ctxP.anioEnCurso)) {
+    const resultsP = calcularPredictivaPipeline(ctxP);
+    renderPredictivaResults(resultsP, ctxP);
+  }
+
+  const inputsA = getAbracadabraInputsFromDOM();
+  const ctxA = buildAbracadabraContext(inputsA);
+  const resultsA = calcularAbracadabraPipeline(ctxA);
+  renderAbracadabraResults(resultsA, ctxA);
+}
+
+/**
+ * Flujo "Solo predictiva":
+ * - requiere base previa o recalcular base mínima para ctxP
+ * - build ctxP -> calcularPredictivaPipeline -> renderPredictivaResults
+ */
+function mainCalcularSoloPredictiva() {
+  // recalculamos base mínima para tener clave personal / letras / SN raw coherentes
+  const inputsBase = getBaseInputsFromDOM();
+  const ctxBase = buildBaseContext(inputsBase);
+  const resultsBase = calcularBasePipeline(ctxBase);
+
+  const inputsP = getPredictivaInputsFromDOM();
+  const ctxP = buildPredictivaContext(inputsP, ctxBase, resultsBase);
+  if (!ctxP.fechaEnCurso || !Number.isFinite(ctxP.anioEnCurso)) return;
+
+  const resultsP = calcularPredictivaPipeline(ctxP);
+  renderPredictivaResults(resultsP, ctxP);
+}
+
+/**
+ * Inicializa listeners UI:
+ * - btnCalcular click => mainCalcularTodo
+ * - btnCalcularPredictiva click => mainCalcularSoloPredictiva
+ */
+function initEventListeners() {
+  $("btnCalcular")?.addEventListener("click", mainCalcularTodo);
+  $("btnCalcularPredictiva")?.addEventListener("click", mainCalcularSoloPredictiva);
+}
+
+
+/* ==========================
+   BOOTSTRAP
+========================== */
+
 document.addEventListener("DOMContentLoaded", () => {
-  // establece en numerologia predictiva la fecha de hoy + 1 año
-  const inputAnioEnCurso = document.getElementById("anioEnCurso");
-  // const hoy = new Date();
-  // const añopredictivo = new Date(hoy.getFullYear() + 0, hoy.getMonth(), hoy.getDate());
-  // const iso = añopredictivo.toISOString().split('T')[0]; // formato YYYY-MM-DD
-  // inputAnioEnCurso.value = iso;
-  
-  
-  // Cambia el tema entre claro y oscuro
-  document.getElementById('toggleModo').addEventListener('click', () => {
-    const body = document.getElementById('body');
-    body.classList.toggle('dark-mode');
-
-    const icono = document.getElementById('toggleModo');
-    icono.textContent = body.classList.contains('dark-mode') ? '🌞' : '🌙';
-  });
-
-  const btnCalcular = document.getElementById("btnCalcular");
-  const btnCalcularPredictiva = document.getElementById("btnCalcularPredictiva");
-
-  // === Datos base compartidos ===
-  const tablaClavePersonal = {
-    enero: {1: 9, 2: 8, 3: 2, 4: 9, 5: 10, 6: 2, 7: 3, 8: 4, 9: 5, 10: 6, 11: 7, 12: 8, 13: 9, 14: 8, 15: 9, 16: 10, 17: 11, 18: 3, 19: 4, 20: 2, 21: 3, 22: 4, 23: 5, 24: 13, 25: 5, 26: 6, 27: 4, 28: 5, 29: 6, 30: 7, 31: 8},
-    febrero: {1: 10, 2: 8, 3: 9, 4: 10, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 7, 11: 8, 12: 7, 13: 8, 14: 9, 15: 10, 16: 11, 17: 3, 18: 4, 19: 2, 20: 3, 21: 4, 22: 1, 23: 4, 24: 5, 25: 12, 26: 4, 27: 5, 28: 6, 29: 7},
-    marzo: {1: 5, 2: 6, 3: 7, 4: 8, 5: 9, 6: 10, 7: 2, 8: 3, 9: 4, 10: 3, 11: 4, 12: 5, 13: 6, 14: 7, 15: 8, 16: 9, 17: 10, 18: 9, 19: 3, 20: 11, 21: 9, 22: 10, 23: 8, 24: 9, 25: 10, 26: 2, 27: 3, 28: 4, 29: 5, 30: 5, 31: 6},
-    abril: {1: 6, 2: 7, 3: 8, 4: 9, 5: 10, 6: 2, 7: 3, 8: 2, 9: 3, 10: 4, 11: 5, 12: 6, 13: 7, 14: 8, 15: 9, 16: 10, 17: 11, 18: 10, 19: 11, 20: 9, 21: 7, 22: 8, 23: 9, 24: 10, 25: 11, 26: 3, 27: 4, 28: 4, 29: 5, 30: 6},
-    mayo: {1: 6, 2: 7, 3: 8, 4: 9, 5: 10, 6: 9, 7: 1, 8: 2, 9: 3, 10: 4, 11: 5, 12: 6, 13: 7, 14: 8, 15: 9, 16: 8, 17: 9, 18: 10, 19: 8, 20: 6, 21: 7, 22: 8, 23: 9, 24: 1, 25: 11, 26: 11, 27: 3, 28: 4, 29: 5, 30: 6, 31: 8},
-    junio: {1: 7, 2: 8, 3: 9, 4: 8, 5: 9, 6: 10, 7: 2, 8: 3, 9: 4, 10: 5, 11: 6, 12: 7, 13: 8, 14: 7, 15: 8, 16: 9, 17: 7, 18: 8, 19: 6, 20: 6, 21: 7, 22: 7, 23: 8, 24: 7, 25: 8, 26: 8, 27: 9, 28: 9, 29: 1, 30: 8},
-    julio: {1: 11, 2: 1, 3: 11, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7, 9: 8, 10: 9, 11: 10, 12: 9, 13: 10, 14: 11, 15: 9, 16: 10, 17: 11, 18: 3, 19: 4, 20: 5, 21: 6, 22: 6, 23: 7, 24: 5, 25: 6, 26: 7, 27: 8, 28: 8, 29: 7, 30: 6, 31: 5},
-    agosto: {1: 10, 2: 11, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 8, 11: 9, 12: 10, 13: 8, 14: 9, 15: 10, 16: 11, 17: 3, 18: 4, 19: 5, 20: 5, 21: 6, 22: 7, 23: 5, 24: 6, 25: 7, 26: 9, 27: 8, 28: 7, 29: 8, 30: 5, 31: 4},
-    septiembre: {1: 11, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 7, 9: 8, 10: 9, 11: 7, 12: 8, 13: 9, 14: 10, 15: 11, 16: 3, 17: 4, 18: 4, 19: 5, 20: 6, 21: 7, 22: 5, 23: 6, 24: 1, 25: 9, 26: 8, 27: 7, 28: 8, 29: 11, 30: 4},
-    octubre: {1: 11, 2: 3, 3: 4, 4: 5, 5: 6, 6: 5, 7: 6, 8: 7, 9: 5, 10: 6, 11: 7, 12: 8, 13: 9, 14: 10, 15: 11, 16: 11, 17: 3, 18: 4, 19: 5, 20: 6, 21: 7, 22: 1, 23: 9, 24: 8, 25: 7, 26: 6, 27: 7, 28: 1, 29: 4, 30: 11, 31: 1},
-    noviembre: {1: 3, 2: 4, 3: 5, 4: 4, 5: 5, 6: 6, 7: 4, 8: 5, 9: 6, 10: 7, 11: 8, 12: 9, 13: 10, 14: 10, 15: 11, 16: 3, 17: 4, 18: 5, 19: 6, 20: 5, 21: 1, 22: 9, 23: 8, 24: 7, 25: 6, 26: 7, 27: 1, 28: 4, 29: 7, 30: 1},
-    diciembre: {1: 3, 2: 2, 3: 3, 4: 4, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 7, 11: 8, 12: 8, 13: 9, 14: 10, 15: 11, 16: 3, 17: 4, 18: 5, 19: 4, 20: 12, 21: 8, 22: 7, 23: 6, 24: 5, 25: 6, 26: 9, 27: 3, 28: 6, 29: 9, 30: 3, 31: 4}
-  };
-
-  const alfabeto = {
-    A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, I: 9,
-    J: 1, K: 2, L: 3, M: 4, N: 5, Ñ: 5, O: 6, P: 7, Q: 8, R: 9,
-    S: 1, T: 2, U: 3, V: 4, W: 5, X: 6, Y: 7, Z: 8
-  };
-
-  const vocalesSet = new Set(['A', 'E', 'I', 'O', 'U']);
-
-  // === Utilidades ===
-  
-  // --- parciales RAW (sin reducir) ---
-  function parcialVocalesRaw(palabra) {
-    let suma = 0;
-    for (let letra of palabra) {
-      if (vocalesSet.has(letra)) suma += alfabeto[letra] || 0;
-    }
-    return suma; // sin reducir
-  }
-
-  function parcialConsonantesRaw(palabra) {
-    let suma = 0;
-    for (let letra of palabra) {
-      if (/[A-ZÑ]/.test(letra) && !vocalesSet.has(letra)) {
-        suma += alfabeto[letra] || 0;
-      }
-    }
-    return suma; // sin reducir
-  }
-
-  function reducirNumero(n) {
-    if ([11, 22, 33].includes(n)) return n;
-    let suma = n;
-    while (suma >= 10) {
-      suma = suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-      if ([11, 22, 33].includes(suma)) break;
-    }
-    return suma;
-  }
-
-  function calcularParcialVocales(palabra) {
-    let suma = 0;
-    for (let letra of palabra) {
-      if (vocalesSet.has(letra)) suma += alfabeto[letra] || 0;
-    }
-    return reducirNumero(suma);
-  }
-
-  // 🔹 Normaliza texto: reemplaza acentos, diéresis y cedillas por su equivalente
-  function normalizarTexto(texto) {
-    return texto
-      .normalize("NFD") // separa caracteres base + diacríticos
-      .replace(/[\u0300-\u036f]/g, "") // elimina diacríticos (acentos, tildes, diéresis)
-      .replace(/ç/g, "c").replace(/Ç/g, "C") // cedillas
-      .replace(/ñ/g, "Ñ").replace(/Ñ/g, "Ñ") // normaliza ñ correctamente
-      .toUpperCase(); // mantiene mayúsculas uniformes
-  }
-
-  function calcularParcialConsonantes(palabra) {
-    let suma = 0;
-    for (let letra of palabra) {
-      if (/[A-ZÑ]/.test(letra) && !vocalesSet.has(letra)) {
-        suma += alfabeto[letra] || 0;
-      }
-    }
-    return reducirNumero(suma);
-  }
-  // === FUNCIÓN: Generar tabla base kármica dinámica con tooltips ===
-  function generarTablaBaseKarmica(nombres, apellidos, parcialesVocales, parcialesConsonantes, parcialesMundo, esenciaIntima, imagen, senderoMundo) {
-    const karmasPosibles = [13, 14, 16, 19];
-    const palabrasTotales = [...nombres.split(/\s+/), ...apellidos.split(/\s+/)].filter(p => p);
-    const numCols = palabrasTotales.length;
-
-    // === 1. Calcular Sendero del Mundo (columna a columna)
-    const parcialesMundoReales = parcialesVocales.map((v, i) => {
-      const c = parcialesConsonantes[i] ?? 0;
-      const suma = v + c;
-      return [11, 22, 33].includes(suma) ? suma : reducirNumero(suma);
-    });
-
-    // === 2. Crear filas
-    const filas = [
-      { nombre: "Esencia Íntima", valores: parcialesVocales, total: esenciaIntima, karma: "" },
-      { nombre: "Imagen", valores: parcialesConsonantes, total: imagen, karma: "" },
-      { nombre: "Sendero del Mundo", valores: parcialesMundoReales, total: senderoMundo, karma: "" }
-    ];
-
-    // === 3. Inicializar matrices ===
-    const karmasH = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
-    const karmasV = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
-
-    // === 4. Detección horizontal (todas las filas, incluyendo Esencia)
-    filas.forEach((fila) => {
-      for (let j = 0; j < fila.valores.length - 1; j++) {
-        const a = fila.valores[j];
-        const b = fila.valores[j + 1];
-        if (a != null && b != null) {
-          // Regla: el 10 cuenta como 1 solo horizontalmente
-          const aEval = [11, 22, 33].includes(a) ? a : (a === 10 ? 1 : a);
-          const bEval = [11, 22, 33].includes(b) ? b : (b === 10 ? 1 : b);
-          const suma = aEval + bEval;
-
-          if (karmasPosibles.includes(suma)) {
-            karmasH[filas.indexOf(fila)][j] = karmasH[filas.indexOf(fila)][j + 1] = true;
-            fila.karma = "k";
-          }
-        }
-      }
-    });
-
-    // === 5. Detección vertical acumulativa (columna por columna y mantiene 10 tal cual sin reducir a 1)
-    const columnasKarma = Array(numCols).fill(false);
-    for (let c = 0; c < numCols; c++) {
-      let acumulado = 0;
-
-      for (let r = 0; r < filas.length; r++) {
-        const val = filas[r].valores[c];
-        if (val == null) continue;
-
-        acumulado += (val === 10 ? 10 : val);
-
-        // Si la suma acumulada da un karma (13, 14, 16, 19) lo marcamos, pero seguimos sumando
-        if (karmasPosibles.includes(acumulado)) {
-          karmasV[r][c] = true;
-          columnasKarma[c] = true;
-        }
-      }
-    }
-
-
-    // === 5.5 Detección de karma en el total de cada fila ===
-    filas.forEach(fila => {
-      // volver a sumar todos los valores sin reducir
-      let sumaBruta = 0;
-      fila.valores.forEach(v => {
-        if (v != null) {
-          sumaBruta += v === 10 ? 10 : v; // mantiene el 10 real
-        }
-      });
-      if (karmasPosibles.includes(sumaBruta)) {
-        fila.karma = "k";
-      }
-    });
-
-    // === 6. Detectar qué columnas tienen karma vertical
-    for (let c = 0; c < numCols; c++) {
-      for (let r = 0; r < filas.length; r++) {
-        if (karmasV[r][c]) {
-          // columnasKarma[c] = true;
-          break;
-        }
-      }
-    }
-
-    // === 7. Render tabla ===
-    let html = `
-      <div class="table-responsive mt-3">
-        <table class="table table-glass text-center align-middle">
-          <thead>
-            <tr>
-              <th>Resultado</th>
-              ${palabrasTotales.map(p => `<th>${p}</th>`).join("")}
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
-
-    filas.forEach((fila, i) => {
-      html += `<tr><th>${fila.nombre}</th>`;
-      for (let j = 0; j < numCols; j++) {
-        let val = fila.valores[j];
-        const isKarma = karmasH[i][j] || karmasV[i][j];
-
-        // 🔹 Visualización especial del 10: se mantiene 10 en pantalla aunque sea 1 internamente
-        let displayVal = (val === 1 && fila.nombre === "Imagen") ? "10" : val;
-
-        // 🔹 Además, si venía reducido a 1 por error pero en parciales crudos era 10, se fuerza 10
-        // (opcional: si en el futuro almacenás parcialesRaw, se puede comparar con eso)
-
-        const style = isKarma ? 'style="color:#ff5e5e;font-weight:700;"' : "";
-        html += `<td ${style}>${displayVal ?? ""}</td>`;
-      }
-
-      html += `<td>${fila.total ?? ""}${fila.karma ? "<span style='color:red;'>,k</span>" : ""}</td></tr>`;
-    });
-
-
-    // === 8. Fila inferior (K de columnas)
-    html += `<tr><td></td>`;
-    for (let j = 0; j < numCols; j++) {
-      html += `<td>${columnasKarma[j] ? "<span style='color:red;font-weight:700;'>k</span>" : ""}</td>`;
-    }
-    html += `<td></td></tr>`;
-
-    html += `
-          </tbody>
-        </table>
-      </div>
-    `;
-
-    // === 9. Insertar/actualizar ===
-    let tablaDiv = document.getElementById("tablaBaseKarma");
-    if (!tablaDiv) {
-      tablaDiv = document.createElement("div");
-      tablaDiv.id = "tablaBaseKarma";
-      const card = [...document.querySelectorAll(".card-title")].find(el => el.textContent.includes("Numerología Base"));
-      if (card) card.parentElement.appendChild(tablaDiv);
-      else document.body.appendChild(tablaDiv);
-    }
-    tablaDiv.innerHTML = html;
-  }
-
-  function actualizarCabecerasCuatrimestres(fechaNacimiento) {
-    const h1 = document.getElementById("cuatri1-header");
-    const h2 = document.getElementById("cuatri2-header");
-    const h3 = document.getElementById("cuatri3-header");
-
-    if (!h1 || !h2 || !h3) return;
-
-    // Si no hay fecha, dejamos los textos por defecto
-    if (!fechaNacimiento) {
-      h1.textContent = "1º Cuatri";
-      h2.textContent = "2º Cuatri";
-      h3.textContent = "3º Cuatri";
-      return;
-    }
-
-    const partes = fechaNacimiento.split("-");
-    if (partes.length !== 3) {
-      h1.textContent = "1º Cuatri";
-      h2.textContent = "2º Cuatri";
-      h3.textContent = "3º Cuatri";
-      return;
-    }
-
-    const mesNac = parseInt(partes[1], 10);
-    if (isNaN(mesNac) || mesNac < 1 || mesNac > 12) {
-      h1.textContent = "1º Cuatri";
-      h2.textContent = "2º Cuatri";
-      h3.textContent = "3º Cuatri";
-      return;
-    }
-
-    const meses = [
-      "Enero", "Febrero", "Marzo", "Abril",
-      "Mayo", "Junio", "Julio", "Agosto",
-      "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
-
-    // mesInicio viene en 1–12
-    function rangoCuatrimestre(mesInicio) {
-      const idxInicio = (mesInicio - 1) % 12;
-      const idxFin    = (mesInicio - 1 + 3) % 12; // 4 meses: inicio, +1, +2, +3
-      const desde = meses[idxInicio];
-      const hasta = meses[idxFin];
-      return `${desde} – ${hasta}`;
-    }
-
-    // 1er cuatri: desde mes de nacimiento
-    const mes1 = mesNac;
-    // 2º cuatri: 4 meses después
-    const mes2 = ((mesNac - 1 + 4) % 12) + 1;
-    // 3º cuatri: 8 meses después
-    const mes3 = ((mesNac - 1 + 8) % 12) + 1;
-
-    h1.textContent = rangoCuatrimestre(mes1);
-    h2.textContent = rangoCuatrimestre(mes2);
-    h3.textContent = rangoCuatrimestre(mes3);
-  }
-
-  // === Cálculo Base (1–18) — SIN CAMBIOS DE LÓGICA ===
-  function calcularBase() {
-    const nombres = normalizarTexto(document.getElementById("nombres").value.trim());
-    const apellidos = normalizarTexto(document.getElementById("apellidos").value.trim());
-    const nombreCompleto = `${nombres} ${apellidos}`;
-    const palabras = nombreCompleto.split(/\s+/);
-    const letrasSolo = nombreCompleto.replace(/[^A-ZÑ]/g, '');
-    const fechaNacimiento = document.getElementById("fechaNacimiento").value;
-
-    // 1. Esencia Íntima
-    const parcialesVocales = palabras.map(p => calcularParcialVocales(p));
-    let sumaVocales = 0;
-    for (let parcial of parcialesVocales) {
-      if ([11, 22, 33].includes(parcial)) {
-        sumaVocales += parcial.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-        // sumaVocales += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
-      } else {
-        sumaVocales += parcial;
-      }
-    }
-    const esenciaIntima = reducirNumero(sumaVocales);
-    document.getElementById("esenciaIntima").value = esenciaIntima;
-    const detalleEsencia = document.getElementById("esenciaIntimaDetalle");
-    if (detalleEsencia && sumaVocales) {
-      detalleEsencia.innerHTML = `
-        <span class="num-crudo">${sumaVocales}</span>
-        <span class="text-muted">/</span>
-        <span class="num-principal">${esenciaIntima}</span>
-      `;
-    } else if (detalleEsencia) {
-      detalleEsencia.innerHTML = "";
-    }
-
-
-    // 2. Imagen
-    const parcialesConsonantes = palabras.map(p => calcularParcialConsonantes(p));
-    let sumaConsonantes = 0;
-    for (let parcial of parcialesConsonantes) {
-      if ([11, 22, 33].includes(parcial)) {
-        sumaConsonantes += parcial.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-        // sumaConsonantes += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
-      } else {
-        sumaConsonantes += parcial;
-      }
-    }
-    const imagen = reducirNumero(sumaConsonantes);
-    document.getElementById("imagen").value = imagen;
-    const detalleImagen = document.getElementById("imagenDetalle");
-    if (detalleImagen && sumaConsonantes) {
-      detalleImagen.innerHTML = `
-        <span class="num-crudo">${sumaConsonantes}</span>
-        <span class="text-muted">/</span>
-        <span class="num-principal">${imagen}</span>
-      `;
-    } else if (detalleImagen) {
-      detalleImagen.innerHTML = "";
-    }
-
-
-    // 3. Sendero del Mundo
-    const parcialesMundo = palabras.map(p => {
-      const v = calcularParcialVocales(p);
-      const c = calcularParcialConsonantes(p);
-      return reducirNumero(v + c);
-    });
-    let sumaFinalMundo = 0;
-    for (let parcial of parcialesMundo) {
-      if ([11, 22, 33].includes(parcial)) {
-        sumaFinalMundo += parcial.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-        // sumaFinalMundo += [parcial.toString()].reduce((a, b) => a + parseInt(b), 0);
-      } else {
-        sumaFinalMundo += parcial;
-      }
-    }
-    const senderoMundo = reducirNumero(sumaFinalMundo);
-    document.getElementById("serMundo").value = senderoMundo;
-    const detalleMundo = document.getElementById("serMundoDetalle");
-    if (detalleMundo && sumaFinalMundo) {
-      detalleMundo.innerHTML = `
-        <span class="num-crudo">${sumaFinalMundo}</span>
-        <span class="text-muted">/</span>
-        <span class="num-principal">${senderoMundo}</span>
-      `;
-    } else if (detalleMundo) {
-      detalleMundo.innerHTML = "";
-    }
-
-    // === Generar tabla dinámica base kármica ===
-    generarTablaBaseKarmica(
-      nombres,
-      apellidos,
-      parcialesVocales,
-      parcialesConsonantes,
-      parcialesMundo,
-      esenciaIntima,
-      imagen,
-      senderoMundo
-    );
-
-    // 4. Sendero Natal
-    let senderoNatal = "";
-    let SumaSenderoNatal = 0;
-    if (fechaNacimiento) {
-      const [anio, mes, dia] = fechaNacimiento.split("-").map(Number);
-      const reducirFecha = (valor) => {
-        if ([11, 22].includes(valor)) return valor;
-        if (valor === 29) return 11;
-        return reducirNumero(valor);
-      };
-      const mesR = reducirFecha(mes);
-      const diaR = reducirFecha(dia);
-      const anioR = reducirFecha(anio.toString().split('').reduce((a, b) => a + parseInt(b), 0));
-      SumaSenderoNatal = mesR + diaR + anioR;
-      senderoNatal = (SumaSenderoNatal === 33) ? 6 : reducirNumero(SumaSenderoNatal);
-    }
-    document.getElementById("senderoNatal").value = senderoNatal;
-
-    const detalleSN = document.getElementById("senderoNatalDetalle");
-    if (detalleSN && SumaSenderoNatal) {
-      detalleSN.innerHTML = `
-        <span class="num-crudo">${SumaSenderoNatal}</span>
-        <span class="text-muted">/</span>
-        <span class="num-principal">${senderoNatal}</span>
-      `;
-    } else if (detalleSN) {
-      detalleSN.innerHTML = "";
-    }
-
-    // 5. Potencial
-    let potencial = "";
-    let potencialRaw = null;
-    if (!isNaN(senderoMundo) && !isNaN(senderoNatal)) {
-      potencialRaw = senderoMundo + senderoNatal;
-      potencial = reducirNumero(potencialRaw);
-    }
-    document.getElementById("potencial").value = potencial;
-    
-    const detallePot = document.getElementById("potencialDetalle");
-    if (detallePot && potencialRaw !== null) {
-      detallePot.innerHTML = `
-        <span class="num-crudo">${potencialRaw}</span>
-        <span class="text-muted">/</span>
-        <span class="num-principal">${potencial}</span>
-      `;
-    } else if (detallePot) {
-      detallePot.innerHTML = "";
-    }
-
-    // 6. Ciclo de Letras
-    document.getElementById("cicloLetras").value = letrasSolo.length;
-
-    // 7. Clave Personal
-    let clavePersonal = "";
-    if (fechaNacimiento) {
-      const [_, mes, dia] = fechaNacimiento.split("-").map(Number);
-      const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-      const mesNombre = meses[mes - 1];
-      if (tablaClavePersonal[mesNombre] && tablaClavePersonal[mesNombre][dia]) {
-        clavePersonal = tablaClavePersonal[mesNombre][dia];
-      }
-    }
-    document.getElementById("clavePersonal").value = clavePersonal;
-
-    // 8. Letra L.
-    const primeraLetra = nombres.charAt(0);
-    const correlacionLetra = (primeraLetra >= 'A' && primeraLetra <= 'Z') ? (primeraLetra.charCodeAt(0) - 64) : '';
-    document.getElementById("letraLeccion").value = correlacionLetra;
-
-    // 9. Regalo Divino
-    let regaloDivino = "";
-    if (fechaNacimiento) {
-      const anio = parseInt(fechaNacimiento.split("-")[0]);
-      regaloDivino = reducirNumero(anio % 100);
-    }
-    document.getElementById("regaloDivino").value = regaloDivino;
-
-    // 10. Etapas
-    if (fechaNacimiento) {
-      const [anio, mes, dia] = fechaNacimiento.split("-").map(Number);
-      const rMes = reducirNumero(mes);
-      const rDia = reducirNumero(dia);
-      const rAnio = reducirNumero(anio.toString().split('').reduce((a, b) => a + parseInt(b), 0));
-
-      document.getElementById("etapa1_izq").textContent = rMes;
-      document.getElementById("etapa1_centro").textContent = rDia;
-      document.getElementById("etapa1_der").textContent = rAnio;
-
-      const e1 = ([11, 22, 33].includes(rMes + rDia)) ? (rMes + rDia) : reducirNumero(rMes + rDia);
-      const e2 = ([11, 22, 33].includes(rDia + rAnio)) ? (rDia + rAnio) : reducirNumero(rDia + rAnio);
-      const e3 = ([11, 22, 33].includes(e1 + e2)) ? (e1 + e2) : reducirNumero(e1 + e2);
-      const e4 = ([11, 22, 33].includes(rMes + rAnio)) ? (rMes + rAnio) : reducirNumero(rMes + rAnio);
-
-      document.getElementById("etapa2_izq").textContent = e1;
-      document.getElementById("etapa2_der").textContent = e2;
-      document.getElementById("etapa3").textContent = e3;
-      document.getElementById("etapa4").textContent = e4;
-
-      const senderoNatal = parseInt(document.getElementById("senderoNatal").value);
-      let edades;
-      if (!isNaN(senderoNatal)) {
-        const etapa1Fin = 36 - senderoNatal;
-        const etapa2Ini = etapa1Fin + 1;
-        const etapa2Fin = etapa2Ini + 9;
-        const etapa3Ini = etapa2Fin + 1;
-        const etapa3Fin = etapa3Ini + 9;
-        const etapa4Ini = etapa3Fin + 1;
-        edades = [0, etapa1Fin, etapa2Ini, etapa3Ini, etapa4Ini];
-      } else {
-        edades = [0, 36, 45, 54];
-      }
-      document.getElementById("etapaTexto1").textContent = `De ${edades[0]} a ${edades[1]} - ${e1}`;
-      document.getElementById("etapaTexto2").textContent = `De ${edades[2]} a ${edades[3] - 1} - ${e2}`;
-      document.getElementById("etapaTexto3").textContent = `De ${edades[3]} a ${edades[4] - 1} - ${e3}`;
-      document.getElementById("etapaTexto4").textContent = `Desde ${edades[4]} en adelante - ${e4}`;
-    }
-
-    // 11. Ciclo de Vida
-    if (fechaNacimiento) {
-      const [anio, mes, dia] = fechaNacimiento.split("-").map(Number);
-      const hoy = new Date();
-      let edad = hoy.getFullYear() - anio;
-      if (hoy.getMonth() + 1 < mes || (hoy.getMonth() + 1 === mes && hoy.getDate() < dia)) edad--;
-
-      const reducirCV = (valor) => (valor === 11 || valor === 22) ? valor : reducirNumero(valor);
-      let cicloVida = "";
-      if ((edad >= 0 && edad <= 27) || (edad >= 81 && edad <= 107)) {
-        cicloVida = (mes === 11) ? 11 : reducirCV(mes);
-      } else if ((edad >= 28 && edad <= 54) || (edad >= 108 && edad <= 134)) {
-        cicloVida = reducirCV(dia);
-      } else if (edad >= 55 && edad <= 80) {
-        cicloVida = reducirCV(anio.toString().split('').reduce((a, b) => a + parseInt(b), 0));
-      } else if (edad > 134) {
-        cicloVida = reducirCV(mes);
-        document.getElementById("cicloVida").classList.add("text-danger");
-      }
-      document.getElementById("cicloVida").value = cicloVida;
-    }
-
-    // 12. Karmas
-    // document.getElementById("karmas").value = [...karmasEncontrados].sort((a,b) => a-b).join(", ") || "—";
-    const karmasPosibles = [13, 14, 16, 19];
-    const karmasEncontrados = new Set();
-    const revisarKarma = (v) => { if (karmasPosibles.includes(v)) karmasEncontrados.add(v); };
-
-    // --- parciales RAW por palabra ---
-    const parcialesVocalesRaw = palabras.map(p => parcialVocalesRaw(p));
-    const parcialesConsonantesRaw = palabras.map(p => parcialConsonantesRaw(p));
-    const parcialesMundoRaw = parcialesVocalesRaw.map((v, i) => v + (parcialesConsonantesRaw[i] || 0));
-
-    // --- totales RAW ---
-    // const sumaVocalesRaw = palabras.reduce((total, p) => {return total + [...p].reduce((suma, letra) => vocalesSet.has(letra) ? suma + (alfabeto[letra] || 0) : suma, 0);}, 0);
-    // revisarKarma(sumaVocalesRaw);
-    // revisarKarma(sumaFinalMundo);
-    // palabras.forEach(p => revisarKarma(calcularParcialVocales(p) + calcularParcialConsonantes(p)));
-    // revisarKarma(parseInt(document.getElementById("senderoNatal").value) || 0);
-    // revisarKarma(parseInt(document.getElementById("potencial").value) || 0);
-    const sumaVocalesRawTotal = parcialesVocalesRaw.reduce((a,b)=>a+b,0);
-    const sumaConsonantesRawTotal = parcialesConsonantesRaw.reduce((a,b)=>a+b,0);
-    const sumaMundoRawTotal = parcialesMundoRaw.reduce((a,b)=>a+b,0);
-
-    // 1) resultados principales (reducidos)
-    revisarKarma(sumaVocales);       // total esencia crudo antes de reducir final
-    revisarKarma(sumaConsonantes);   // total imagen crudo antes de reducir final
-    revisarKarma(sumaFinalMundo);    // total mundo crudo antes de reducir final
-    revisarKarma(parseInt(document.getElementById("senderoNatal").value) || 0);
-    revisarKarma(parseInt(document.getElementById("potencial").value) || 0);
-
-    // 2) RAW por palabra (vocales / consonantes / mundo)
-    parcialesVocalesRaw.forEach(v => revisarKarma(v));
-    parcialesConsonantesRaw.forEach(v => revisarKarma(v));
-    parcialesMundoRaw.forEach(v => revisarKarma(v));
-
-    // 3) RAW totales (acá aparece el 13 que se te estaba escapando)
-    revisarKarma(sumaVocalesRawTotal);
-    revisarKarma(sumaConsonantesRawTotal);
-    revisarKarma(sumaMundoRawTotal);
-
-    document.getElementById("karmas").value =
-      [...karmasEncontrados].sort((a,b) => a-b).join(", ") || "—";
-
-    // 13. Lecciones Kármicas
-    const conteo = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
-    letrasSolo.split('').forEach(l => { const v = alfabeto[l]; if (v) conteo[v]++; });
-    const lecciones = [];
-    for (let i=1;i<=9;i++){ if (conteo[i]===0) lecciones.push(i); }
-    document.getElementById("leccionesKarmicas").value = lecciones.join(", ") || "—";
-
-    // 14–16: DD Vocales/Consonantes/Total
-    let ddVocales = 0, ddConsonantes = 0;
-    letrasSolo.split('').forEach(l => {
-      if (vocalesSet.has(l)) ddVocales += alfabeto[l] || 0;
-      else if (/[A-ZÑ]/.test(l)) ddConsonantes += alfabeto[l] || 0;
-    });
-    document.getElementById("dobleDigitoVocales").value = ddVocales;
-    document.getElementById("dobleDigitoConsonantes").value = ddConsonantes;
-    document.getElementById("dobleDigitoTotal").value = ddVocales + ddConsonantes;
-
-    // 17: DD Fecha
-    let ddFecha = 0;
-    if (fechaNacimiento) {
-      const [anio, mes, dia] = fechaNacimiento.split("-");
-      ddFecha = [...(dia + mes + anio)].reduce((s, d) => s + parseInt(d), 0);
-    }
-    document.getElementById("dobleDigitoFecha").value = ddFecha;
-
-    // 18: Arcano Natal (día + mes + año reducido a 2 cifras)
-    let ArcanoNatal = 0;
-    if (fechaNacimiento) {
-      const [anio, mes, dia] = fechaNacimiento.split("-").map(Number);
-      const anioSuma = anio.toString().split('').reduce((a, b) => a + parseInt(b), 0); // ej: 1+9+9+0 = 19
-      ArcanoNatal = dia + mes + anioSuma; // sin reducir
-    }
-    document.getElementById("ArcanoNatal").value = ArcanoNatal;
-  }
-
-  // === Cálculo Predictivo (19–31) — AJUSTADO A SPANS resultado24..31 ===
-  function calcularPredictiva() {
-    const fechaNacimiento = document.getElementById("fechaNacimiento").value;
-    const fechaEnCurso = new Date(document.getElementById("anioEnCurso").value);
-    const anioEnCurso = fechaEnCurso.getFullYear();
-    const nombres = normalizarTexto(document.getElementById("nombres").value.trim());
-    const apellidos = normalizarTexto(document.getElementById("apellidos").value.trim());
-    const nombreCompleto = `${nombres} ${apellidos}`;
-    // Actualizar cabeceras de cuatrimestres según la fecha de nacimiento
-    actualizarCabecerasCuatrimestres(fechaNacimiento);
-
-    if (!fechaNacimiento || isNaN(anioEnCurso)) return;
-
-    const [anioNac, mesNac, diaNac] = fechaNacimiento.split("-").map(Number);
-    const mesReducido = reducirNumero(mesNac);
-    const diaReducido = reducirNumero(diaNac);
-    const anioReducido = reducirNumero(anioEnCurso.toString().split('').reduce((a, b) => a + parseInt(b), 0));
-    // 19: Año Personal
-    const sumaAP = mesReducido + diaReducido + anioReducido;
-    const anioPersonal = [11, 22, 33].includes(sumaAP) ? sumaAP : reducirNumero(sumaAP);
-    // Mostramos ambos campos: la cuenta y el resultado final
-    document.getElementById("labelanioPersonal").value = `${diaReducido} + ${mesReducido} + ${anioReducido}`; //  = ${sumaAP}`;
-    document.getElementById("anioPersonal").value = anioPersonal;
-
-
-
-    // 20: Dígito de Edad (depende de la fecha predictiva: antes/después del cumple)
-    const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
-    const yaCumplioEnFecha = fechaEnCurso >= cumpleEsteAnio;
-
-    // edad actual en la fecha predictiva (igual que resultado 21)
-    const edadActual = anioEnCurso - anioNac - (yaCumplioEnFecha ? 0 : 1);
-
-    // Para el Dígito de Edad tomamos:
-    // - edadAntes: la edad vigente al inicio del ciclo (en la fecha elegida)
-    // - edadDespues: la edad después del próximo cumpleaños dentro de los próximos 12 meses
-    const edadAntes = edadActual;
-    const edadDespues = edadActual + 1;
-
-    const edad1 = reducirNumero(edadAntes);
-    const edad2 = reducirNumero(edadDespues);
-    const sumaEdad = edad1 + edad2;
-
-    const digitoEdad = [11, 22, 33].includes(sumaEdad)
-      ? sumaEdad
-      : reducirNumero(sumaEdad);
-
-    document.getElementById("digitoEdad").value = digitoEdad;
-    document.getElementById("digitoEdadTexto").textContent =
-      `20. Dígito de Edad ${edadAntes} + ${edadDespues} →`;
-
-    // 21: Edad actual (esta sí depende de la fecha elegida)
-    // const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
-    // const yaCumplioEnFecha = fechaEnCurso >= cumpleEsteAnio;
-
-    // const edadActual = anioEnCurso - anioNac - (yaCumplioEnFecha ? 0 : 1);
-    document.getElementById("edadActual").value = edadActual;
-
-    // 20: Dígito de Edad
-    // const cumpleEsteAnio = new Date(anioEnCurso, mesNac - 1, diaNac);
-    // const yaCumplio = fechaEnCurso >= cumpleEsteAnio;
-
-    // const edadDespues = anioEnCurso - anioNac - (yaCumplio ? 0 : 1);
-    // const edadAntes = edadDespues - 1;
-    
-    // const edad1 = reducirNumero(edadAntes);
-    // const edad2 = reducirNumero(edadDespues);
-    // const sumaEdad = edad1 + edad2;
-    // const digitoEdad = [11, 22, 33].includes(sumaEdad) ? sumaEdad : reducirNumero(sumaEdad);
-    // document.getElementById("digitoEdad").value = digitoEdad;
-    // document.getElementById("digitoEdadTexto").textContent = `20. Dígito de Edad ${edadAntes} + ${edadDespues} →`;
-
-    // 21: Edad actual
-    // document.getElementById("edadActual").value = edadDespues;
-
-    // 22: Mes Personal
-    const mesHoy = new Date().getMonth() + 1;
-    const mesactualReducido = reducirNumero(mesHoy);
-    const sumaMesPersonal = anioPersonal + mesactualReducido;
-    const mesPersonal = [11, 22, 33].includes(sumaMesPersonal) ? sumaMesPersonal : reducirNumero(sumaMesPersonal);
-    document.getElementById("mesPersonal").value = mesPersonal;
-
-    // 23: Tránsito de Letra
-    const letrasSolo = nombreCompleto.replace(/[^A-ZÑ]/g, '');
-    if (letrasSolo.length > 0) {
-      // let edad = edadDespues;
-      let edad = edadActual;
-      let acumulado = 0;
-      let letraActual = letrasSolo[0];
-
-      // Iteramos por letras sumando sus valores como duración de tránsito
-      for (let i = 0; i < 500; i++) {
-        const letra = letrasSolo[i % letrasSolo.length];
-        const valor = alfabeto[letra] || 0;
-        if (valor === 0) continue;
-
-        const siguienteAcumulado = acumulado + valor;
-        if (edad >= acumulado && edad < siguienteAcumulado) {
-          letraActual = letra;
-          break;
-        }
-        acumulado = siguienteAcumulado;
-      }
-
-      document.getElementById("transitoLetra").value = letraActual;
-    } else {
-      document.getElementById("transitoLetra").value = "—";
-    }
-
-    // 24–31: Armónicos / Cuatrimestres
-    const reducirADigito = (n) => {
-      while (n >= 10) n = n.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-      return n;
-    };
-
-    const armonicoBasico = (valor, anioActual) => {
-      const suma = anioActual + valor;
-      if (suma < 2000) {
-        return suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-      } else {
-        const primerosDos = parseInt(suma.toString().substring(0, 2));
-        const ultimosDos = parseInt(suma.toString().substring(2));
-        const reducidos = reducirADigito(ultimosDos);
-        return primerosDos + reducidos;
-      }
-    };
-
-    // Refactor de armonicoExtendido con comprobaciones completas para los resultados 28–31
-    function armonicoExtendido28(valor, anioActual, reducirPosteriores = true) {
-      const suma = anioActual + valor;
-
-      // Si es menor a 2000 → sumar dígito por dígito sin más
-      if (suma < 2000) {
-        return suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-      }
-
-      const str = suma.toString();
-      const primerosDos = parseInt(str.slice(0, 2));
-      const ultimosDos = parseInt(str.slice(2));
-
-      let total;
-      if (reducirPosteriores) {
-        // Para 28, 30, 31 → se reducen los últimos dos dígitos
-        const reducidos = ultimosDos.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-        total = primerosDos + reducidos;
-      } else {
-        // Para 29 → NO reducir los últimos dos dígitos
-        total = primerosDos + ultimosDos;
-      }
-
-      // Si el total supera 78, sumar dígito por dígito del número completo
-      if (total > 78) {
-        return suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-      }
-
-      return total;
-    }
-
-    const armonicoExtendido = (valor, anioActual) => {
-      const suma = anioActual + valor;
-      if (suma < 2000) {
-        return suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-      } else {
-        const primerosDos = parseInt(suma.toString().substring(0, 2));
-        const ultimosDos = parseInt(suma.toString().substring(2));
-        const total = primerosDos + ultimosDos;
-        return total <= 78 ? total : suma.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-      }
-    };
-
-    const dobleDigitoAnioNacimiento = fechaNacimiento ? fechaNacimiento.split("-")[0].split('').reduce((a, b) => a + parseInt(b), 0) : 0;
-    // Recalcular Sendero Natal en Predictiva con la misma lógica que en Base (sin 33)
-    let senderoNatalRaw = 0;
-    if (fechaNacimiento) {
-      const reducirFechaSN = (valor) => {
-        if ([11, 22].includes(valor)) return valor; // mismos maestros que en Base
-        if (valor === 29) return 11;
-        return reducirNumero(valor);
-      };
-
-      const mesR_SN = reducirFechaSN(mesNac);
-      const diaR_SN = reducirFechaSN(diaNac);
-      const anioR_SN = reducirFechaSN(
-        anioNac.toString().split('').reduce((a, b) => a + parseInt(b), 0)
-      );
-
-      const sumaSNraw = mesR_SN + diaR_SN + anioR_SN;
-      senderoNatalRaw = (sumaSNraw === 33) ? 6 : reducirNumero(sumaSNraw);
-    }
-    // const senderoNatalRaw = fechaNacimiento ? (reducirNumero(mesNac) + reducirNumero(diaNac) + reducirNumero(anioNac.toString().split('').reduce((a, b) => a + parseInt(b), 0))) : 0;
-    const clavePersonalRaw = parseInt(document.getElementById("clavePersonal").value);
-
-    const r24 = armonicoBasico(dobleDigitoAnioNacimiento, anioEnCurso);
-    const r25 = armonicoBasico(edadActual, anioEnCurso);
-    // const r25 = armonicoBasico(edadDespues, anioEnCurso);
-    const r26 = armonicoBasico(senderoNatalRaw, anioEnCurso);
-    const r27 = armonicoBasico(clavePersonalRaw, anioEnCurso);
-
-    const r28 = armonicoExtendido(dobleDigitoAnioNacimiento, anioEnCurso);
-    // === Resultado 29 ===
-    // Regla: si (primerosdos + últimosDos) > 78 → sumar dígito a dígito del número completo (anio + edad)
-    // Ejemplo: 2025 + 31 = 2056 → 20 + 56 = 76 (ok)
-    // Ejemplo: 2025 + 41 = 2066 → 20 + 66 = 86 (>78) → 2+0+6+6 = 14
-    // const suma29 = anioEnCurso + edadDespues;
-    const suma29 = anioEnCurso + edadActual;
-    const primerosDos29 = parseInt(suma29.toString().slice(0, 2));
-    const ultimosDos29  = parseInt(suma29.toString().slice(2));
-    let total29 = primerosDos29 + ultimosDos29;
-    if (total29 > 78) {
-      total29 = suma29.toString().split('').reduce((a, b) => a + parseInt(b), 0);
-    }
-    const r29 = total29;
-    const r30 = armonicoExtendido(senderoNatalRaw, anioEnCurso);
-    const r31 = armonicoExtendido(clavePersonalRaw, anioEnCurso);
-
-    // Pintamos SOLO en los spans existentes (coinciden con tu HTML)
-    document.getElementById("resultado24").textContent = r24;
-    document.getElementById("resultado25").textContent = r25;
-    document.getElementById("resultado26").textContent = r26;
-    document.getElementById("resultado27").textContent = r27;
-
-    document.getElementById("resultado28").textContent = r28;
-    document.getElementById("resultado29").textContent = r29;
-    document.getElementById("resultado30").textContent = r30;
-    document.getElementById("resultado31").textContent = r31;
-  }
-
-  // === Cálculo Abracadabra (32) ===
-  function calcularAbracadabra() {
-    // 1) Tomar el nombre y apellido sin espacios
-    const nombres = normalizarTexto(document.getElementById("nombres").value.trim());
-    const apellidos = normalizarTexto(document.getElementById("apellidos").value.trim());
-    const nombreCompleto = (nombres + apellidos).replace(/[^A-ZÑ]/g, '');
-
-    // 2) Primeras 9 letras (relleno con espacio si faltan)
-    const primeras9 = nombreCompleto.slice(0, 9).padEnd(9, ' ');
-
-    // === FILA 1 ===
-    const fila1 = [];
-    for (let i = 0; i < 9; i++) {
-      // Letras
-      document.getElementById(`abracadabra_nombre_${i + 1}`).textContent =
-        primeras9[i] ? primeras9[i] : '';
-
-      // Valores numerológicos
-      const valor = alfabeto[primeras9[i]] || 0;
-      fila1.push(valor);
-
-      const celda = document.getElementById(`r1c${i + 1}_abracadabra_valor_${i + 1}`);
-      if (celda) celda.textContent = valor;
-    }
-
-    // Guardamos todas las filas en un array
-    const filas = [fila1];
-
-    // === FILAS 2 → 9 ===
-    // En el Abracadabra siempre reducimos todo a un dígito (1–9), sin conservar maestros.
-    // Cada fila tiene (fila anterior length - 1) celdas
-    for (let f = 2; f <= 9; f++) {
-      const filaAnterior = filas[f - 2]; // array de la fila anterior
-      const filaActual = [];
-
-      for (let c = 0; c < filaAnterior.length - 1; c++) {
-        // const sumaReducida = reducirNumero(filaAnterior[c] + filaAnterior[c + 1]);
-        const suma = filaAnterior[c] + filaAnterior[c + 1];
-
-        // reducción estricta: sin preservar 11, 22 o 33
-        let sumaReducida = suma;
-        while (sumaReducida >= 10) {
-          sumaReducida = sumaReducida
-            .toString()
-            .split('')
-            .reduce((a, b) => a + parseInt(b), 0);
-        }
-
-        filaActual.push(sumaReducida);
-
-        // Pintamos el valor en la tabla
-        const celda = document.getElementById(`r${f}c${c + 1}`);
-        if (celda) celda.textContent = sumaReducida;
-      }
-
-      filas.push(filaActual);
-    }
-    // === CÁLCULO DE rX_sum (sumatorias por fila) ===
-    filas.forEach((fila, i) => {
-      const total = fila.reduce((a, b) => a + b, 0);
-      if (isNaN(total)) return;
-
-      // Primer reducción
-      const primeraReduccion = total
-        .toString()
-        .split('')
-        .reduce((a, b) => a + parseInt(b), 0);
-
-      // Segunda reducción
-      let segundaReduccion = primeraReduccion;
-      if (segundaReduccion >= 10) {
-        segundaReduccion = segundaReduccion
-          .toString()
-          .split('')
-          .reduce((a, b) => a + parseInt(b), 0);
-      }
-
-      // Construimos el texto como "56 / 11 / 2"
-      const textoResultado = `${total}/${primeraReduccion}/${segundaReduccion}`;
-
-      const celdaSum = document.getElementById(`r${i + 1}_sum`);
-      if (celdaSum) celdaSum.textContent = textoResultado;
-    });
-  }
-
-
-  // === Listeners ===
-  btnCalcular.addEventListener("click", () => {
-    calcularBase();       // 1–18
-    calcularPredictiva(); // 19–31
-    calcularAbracadabra(); // 32
-  });
-
-  btnCalcularPredictiva.addEventListener("click", () => {
-    calcularPredictiva(); // solo 19–31
-  });
+  initLogin();
+  initThemeToggle();
+  initKeyboardShortcuts();
+  initEventListeners();
+  renderTablaBaseKarmicaPlaceholder();
 });
-
-/*
-═══════════════════════════════════════════════════════════════════════════════
-RESUMEN DE CÁLCULOS NUMEROLÓGICOS (RESULTADOS 1–32)
-═══════════════════════════════════════════════════════════════════════════════
-
-Resultado 1 → Esencia Íntima  
-    Vocales por palabra → reducir → sumar todas → reducir total.
-
-Resultado 2 → Imagen  
-    Consonantes por palabra → reducir → sumar todas → reducir total.
-
-Resultado 3 → Sendero del Mundo  
-    (Vocales + Consonantes) por palabra → reducir → sumar todas → reducir total.
-
-Resultado 4 → Sendero Natal  
-    Reducir mes, día y año de nacimiento → sumar → reducir total. (no puede existir el 33)
-
-Resultado 5 → Potencial  
-    Sendero Natal + Sendero del Mundo → reducir.
-
-Resultado 6 → Ciclo de Letras  
-    Total de letras del nombre completo (sin espacios ni símbolos).
-
-Resultado 7 → Clave Personal  
-    Según tabla fija: combinación entre mes y día de nacimiento.
-
-Resultado 8 → Letra L.  
-    Posición alfabética de la primera letra del primer nombre.
-
-Resultado 9 → Regalo Divino  
-    Suma de los dos últimos dígitos del año de nacimiento → reducir  
-    (salvo que dé 11, 22 o 33).
-
-Resultado 10 → Etapas  
-    Etapa 1: mes + día → reducir (salvo 11, 22 o 33)  
-    Etapa 2: día + año → reducir (salvo 11, 22 o 33)  
-    Etapa 3: Etapa 1 + Etapa 2 → reducir (salvo 11, 22 o 33)  
-    Etapa 4: mes + año → reducir (salvo 11, 22 o 33)  
-    Además, se calculan las edades de transición entre etapas según el Sendero Natal.
-
-Resultado 11 → Ciclo de Vida  
-    Según edad actual:  
-      • 0–27 años (y 81–107): usa mes.  
-      • 28–54 años (y 108–134): usa día.  
-      • 55–80 años: usa año.  
-    (Si > 134 años, vuelve a mes y marca en rojo).
-
-Resultado 12 → Karmas  
-    Detecta los valores 13, 14, 16 o 19 en:  
-      esencia, vocales totales, sendero del mundo, parciales por palabra,  
-      sendero natal y potencial.
-
-Resultado 13 → Lecciones Kármicas  
-    Números del 1 al 9 que NO aparecen en el nombre completo.
-
-Resultado 14 → Doble Dígito (Vocales)  
-    Suma sin reducir de todas las vocales del nombre completo.
-
-Resultado 15 → Doble Dígito (Consonantes)  
-    Suma sin reducir de todas las consonantes.
-
-Resultado 16 → Doble Dígito (Total)  
-    Suma de los Resultados 14 + 15.
-
-Resultado 17 → Doble Dígito (Fecha)  
-    Suma dígito a dígito de día + mes + año de nacimiento (sin reducir).
-
-Resultado 18 → Arcano Natal  
-    Día + mes + año reducido a dos cifras (sin reducir final).
-
-───────────────────────────────────────────────────────────────────────────────
-
-Resultado 19 → Año Personal  
-    Mes reducido + día reducido + año en curso reducido → reducir final.  
-    (Mantiene 11 o 22 si aparecen).
-
-Resultado 20 → Dígito de Edad  
-    Se sumán los dígitos reducidos de la edad anterior y actual → reducir.  
-    Ejemplo: 39 (=3 + 9 = 12 → 3) + 40 (=4) = 7.
-
-Resultado 21 → Edad Actual  
-    Diferencia entre el año en curso y el año de nacimiento,  
-    considerando si ya cumplió años en el año en curso.
-
-Resultado 22 → Mes Personal  
-    Año Personal + mes actual reducido → reducir (mantiene 11 o 22 si aparecen).
-
-Resultado 23 → Tránsito de Letra  
-    Se recorre el nombre completo y cada letra dura “valor alfabético” años.  
-    Según la edad actual, se determina qué letra rige el año en curso.
-
-───────────────────────────────────────────────────────────────────────────────
-
-Resultados 24–27 → Armónicos / Cuatrimestres (versión básica)  
-    24 → Año actual + doble dígito del año de nacimiento.  
-    25 → Año actual + edad actual.  
-    26 → Año actual + sendero natal.  
-    27 → Año actual + clave personal.  
-    Regla básica:  
-      • Si el resultado < 2000 → sumar dígitos directamente.  
-      • Si ≥ 2000 → tomar dos primeros + dos últimos reducidos.  
-      • Si da 11 o 22, se mantiene sin reducir.
-
-Resultados 28–31 → Armónicos / Cuatrimestres (versión extendida)  
-    Igual que los anteriores, pero sin reducir los dos últimos dígitos.  
-    Si el resultado > 78 → se suma dígito a dígito del número completo.
-
-      28 → Año actual + doble dígito del año de nacimiento.  
-      29 → Año actual + edad actual.  
-      30 → Año actual + sendero natal.  
-      31 → Año actual + clave personal.
-
-───────────────────────────────────────────────────────────────────────────────
-
-Resultado 32 → Abracadabra  
-    Pirámide numerológica de 9 filas:  
-      • Fila 1: primeras 9 letras del nombre completo → valores alfabéticos.  
-      • Filas 2–9: cada celda es la suma reducida de las dos superiores (1 a 9).  
-    Refleja la vibración progresiva del nombre en forma de triángulo.
-
-═══════════════════════════════════════════════════════════════════════════════
-*/
