@@ -2281,6 +2281,7 @@ function limpiarInputsYResultados() {
 const USUARIOS_PERMITIDOS = [
   { email: "admin", password: "admin" },
   { email: "martin", password: "123" },
+  { email: "guido", password: "123" },
   { email: "demo", password: "123" }
 ];
 
