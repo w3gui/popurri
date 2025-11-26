@@ -480,11 +480,12 @@ function initKarmaTooltips(root=document) {
 
     
 function formatearDetalleCrudoYReducido(crudo, reducido) {
-  if (!crudo && crudo !== 0) return "";
+  if (crudo === null || crudo === undefined || crudo === "") return "";
+  // if (!crudo && crudo !== 0) return "";
   return `
     <span class="num-crudo">${crudo}</span>
     <span class="num-sep">/</span>
-    <span class="num-principal">${reducido ?? ""}</span>
+    <span class="num-principal" style="color:#00e676;font-weight:600;">${reducido ?? ""}</span>
   `;
 }
 
@@ -584,7 +585,7 @@ function renderTablaBaseKarmicaPlaceholder() {
   });
 }
 
-
+/*
 function buildTablaBaseKarmicaData(ctxBase, resultsBase) {
   const palabrasTotales = [
     ...dividirEnPalabras(ctxBase.nombres),
@@ -645,7 +646,98 @@ function buildTablaBaseKarmicaData(ctxBase, resultsBase) {
 
   return { palabrasTotales, filas, karmasH, karmasV, columnasKarma, infoH, infoV, columnasInfo };
 }
+*/
+function buildTablaBaseKarmicaData(ctxBase, resultsBase) {
+  // Palabras (nombres + apellidos) ya normalizados fuera
+  const palabrasNombres   = dividirEnPalabras(ctxBase.nombres || "");
+  const palabrasApellidos = dividirEnPalabras(ctxBase.apellidos || "");
+  const palabrasTotales   = [...palabrasNombres, ...palabrasApellidos].filter(Boolean);
 
+  const numCols = palabrasTotales.length;
+
+  // Obtenemos parciales por palabra (vocales/consonantes, crudos y reducidos)
+  const {
+    vocalesRed,
+    consonantesRed,
+    vocalesRaw,
+    consonantesRaw
+  } = parcialesPorPalabra(palabrasTotales);
+
+  // 10 "reservado": suma RAW = 10 y reducido = 1
+  const esDiezVocal = vocalesRaw.map((raw, idx) => raw === 10 && vocalesRed[idx] === 1);
+  const esDiezConsonante = consonantesRaw.map((raw, idx) => raw === 10 && consonantesRed[idx] === 1);
+
+  // Valores visibles en la tabla:
+  //  - si viene de 10→1, se muestra como 10
+  const esenciaDisplay = vocalesRed.map((val, idx) =>
+    esDiezVocal[idx] && val === 1 ? 10 : val
+  );
+  const imagenDisplay = consonantesRed.map((val, idx) =>
+    esDiezConsonante[idx] && val === 1 ? 10 : val
+  );
+
+  // Valores para SUMAS HORIZONTALES (filas): 10 => 1
+  const esenciaFilaEval = esenciaDisplay.map(v => v === 10 ? 1 : v);
+  const imagenFilaEval  = imagenDisplay.map(v => v === 10 ? 1 : v);
+
+  // Sendero del Mundo por palabra (crudo y reducido)
+  const senderoRaw = vocalesRaw.map((v, i) => (v || 0) + (consonantesRaw[i] || 0));
+  const senderoRed = senderoRaw.map(sum =>
+    esMaestro(sum) ? sum : reducirNumero(sum)
+  );
+  const esDiezSendero = senderoRaw.map((raw, idx) => raw === 10 && senderoRed[idx] === 1);
+  const senderoDisplay = senderoRed.map((val, idx) =>
+    esDiezSendero[idx] && val === 1 ? 10 : val
+  );
+  const senderoFilaEval = senderoDisplay.map(v => v === 10 ? 1 : v);
+
+  // Totales crudos de fila (para mostrar a la izquierda del "/")
+  const totalEsenciaCrudoFila = esenciaFilaEval.reduce((acc, v) => acc + (v || 0), 0);
+  const totalImagenCrudoFila  = imagenFilaEval.reduce((acc, v) => acc + (v || 0), 0);
+  const totalMundoCrudoFila   = senderoFilaEval.reduce((acc, v) => acc + (v || 0), 0);
+
+  const filas = [
+    {
+      nombre: "Esencia Íntima",
+      valores: esenciaDisplay,       // lo que se ve (5, 8, 10 en el ejemplo Elvis)
+      filaEval: esenciaFilaEval,     // lo que se usa para karmas en fila (5, 8, 1)
+      totalHTML: formatearDetalleCrudoYReducido(
+        totalEsenciaCrudoFila,
+        resultsBase.esenciaIntima.valor
+      ),
+      karma: "",
+      tipo: "esencia"
+    },
+    {
+      nombre: "Imagen",
+      valores: imagenDisplay,
+      filaEval: imagenFilaEval,
+      totalHTML: formatearDetalleCrudoYReducido(
+        totalImagenCrudoFila,
+        resultsBase.imagen.valor
+      ),
+      karma: "",
+      tipo: "imagen"
+    },
+    {
+      nombre: "Sendero del Mundo",
+      valores: senderoDisplay,
+      filaEval: senderoFilaEval,
+      totalHTML: formatearDetalleCrudoYReducido(
+        totalMundoCrudoFila,
+        resultsBase.senderoMundo.valor
+      ),
+      karma: "",
+      tipo: "mundo"
+    }
+  ];
+
+  const { karmasH, infoH } = detectarKarmasHorizontales(filas, numCols);
+  const { karmasV, columnasKarma, infoV, columnasInfo } = detectarKarmasVerticales(filas, numCols);
+  detectarKarmaEnTotalesFila(filas);
+
+  return { palabrasTotales, filas, karmasH, karmasV, columnasKarma, infoH, infoV, columnasInfo };
+}
 
 /**
  * Detecta karmas horizontales dentro de cada fila.
@@ -657,6 +749,7 @@ function buildTablaBaseKarmicaData(ctxBase, resultsBase) {
  * @param {number} numCols
  * @returns {boolean[][]} matriz [fila][col] con marcas horizontales.
  */
+/*
 function detectarKarmasHorizontales(filas, numCols) {
   const karmasH = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
   const infoH   = Array(filas.length).fill(null).map(() => Array(numCols).fill(null));
@@ -686,6 +779,36 @@ function detectarKarmasHorizontales(filas, numCols) {
 
   return { karmasH, infoH };
 }
+*/
+function detectarKarmasHorizontales(filas, numCols) {
+  const karmasH = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
+  const infoH   = Array(filas.length).fill(null).map(() => Array(numCols).fill(null));
+
+  filas.forEach((fila, i) => {
+    const vals = fila.filaEval || fila.valores; // 10 ya viene como 1 para karma en fila
+
+    for (let j = 0; j < vals.length - 1; j++) {
+      const a = vals[j];
+      const b = vals[j + 1];
+      if (a == null || b == null) continue;
+
+      const suma = a + b;
+
+      if (KARMAS_POSIBLES.includes(suma)) {
+        karmasH[i][j] = true;
+        karmasH[i][j + 1] = true;
+
+        const detalle = `Karma ${suma} (horizontal: ${a} + ${b})`;
+        infoH[i][j] = { karma: suma, detalle };
+        infoH[i][j + 1] = { karma: suma, detalle };
+
+        fila.karma = "k"; // esta fila tiene algún karma horizontal
+      }
+    }
+  });
+
+  return { karmasH, infoH };
+}
 
 
 /**
@@ -699,6 +822,8 @@ function detectarKarmasHorizontales(filas, numCols) {
  * @param {number} numCols
  * @returns {{karmasV:boolean[][], columnasKarma:boolean[]}}
  */
+
+/*
 function detectarKarmasVerticales(filas, numCols) {
   const karmasV = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
   const infoV   = Array(filas.length).fill(null).map(() => Array(numCols).fill(null));
@@ -726,7 +851,39 @@ function detectarKarmasVerticales(filas, numCols) {
 
   return { karmasV, columnasKarma, infoV, columnasInfo };
 }
+*/
+function detectarKarmasVerticales(filas, numCols) {
+  const karmasV = Array(filas.length).fill(null).map(() => Array(numCols).fill(false));
+  const infoV   = Array(filas.length).fill(null).map(() => Array(numCols).fill(null));
 
+  const columnasKarma = Array(numCols).fill(false);
+  const columnasInfo  = Array(numCols).fill(null);
+
+  // Solo consideramos las dos primeras filas: Esencia (0) e Imagen (1)
+  const filasConsideradas = Math.min(2, filas.length);
+
+  for (let c = 0; c < numCols; c++) {
+    let acumulado = 0;
+    for (let r = 0; r < filasConsideradas; r++) {
+      const val = filas[r].valores[c]; // aquí val ya muestra 10 si viene de 10
+      if (val == null) continue;
+
+      // En vertical el 10 se usa como 10
+      acumulado += val;
+
+      if (KARMAS_POSIBLES.includes(acumulado)) {
+        karmasV[r][c] = true;
+        columnasKarma[c] = true;
+
+        const detalle = `Karma ${acumulado} (vertical: acumulado en columna = ${acumulado})`;
+        infoV[r][c] = { karma: acumulado, detalle };
+        columnasInfo[c] = { karma: acumulado, detalle };
+      }
+    }
+  }
+
+  return { karmasV, columnasKarma, infoV, columnasInfo };
+}
 
 /**
  * Revisa el total bruto por fila (sin reducir),
@@ -735,11 +892,32 @@ function detectarKarmasVerticales(filas, numCols) {
  * @param {Array<{valores:number[], karma?:string}>} filas
  * @returns {Array<{valores:number[], karma?:string}>} filas mutadas o copiadas.
  */
+/*
+
 function detectarKarmaEnTotalesFila(filas) {
   filas.forEach(fila => {
     let sumaBruta = 0;
     fila.valores.forEach(v => {
       if (v != null) sumaBruta += (v === 10 ? 10 : v);
+    });
+
+    if (KARMAS_POSIBLES.includes(sumaBruta)) {
+      fila.karma = "k";
+      fila.karmaTotalInfo = `Karma ${sumaBruta} (total fila: ${sumaBruta})`;
+    } else {
+      fila.karmaTotalInfo = null;
+    }
+  });
+  return filas;
+}
+*/
+function detectarKarmaEnTotalesFila(filas) {
+  filas.forEach(fila => {
+    const vals = fila.filaEval || fila.valores;
+    let sumaBruta = 0;
+
+    vals.forEach(v => {
+      if (v != null) sumaBruta += v; // aquí 10 ya viene como 1
     });
 
     if (KARMAS_POSIBLES.includes(sumaBruta)) {
@@ -826,57 +1004,6 @@ function renderTablaBaseKarmica(tablaData) {
   // activar tooltips
   initKarmaTooltips(tablaDiv);
 }
-
-// function renderTablaBaseKarmica(tablaData) {
-//   const { palabrasTotales, filas, karmasH, karmasV, columnasKarma } = tablaData;
-//   const numCols = palabrasTotales.length;
-
-
-
-//   filas.forEach((fila, i) => {
-//     html += `<tr><th>${fila.nombre}</th>`;
-//     for (let j = 0; j < numCols; j++) {
-//       const val = fila.valores[j];
-//       const isKarma = (karmasH[i]?.[j]) || (karmasV[i]?.[j]);
-
-//       // visual 10 como en tu old code
-//       const displayVal = (val === 1 && fila.nombre === "Imagen") ? "10" : val;
-
-//       const style = isKarma ? 'style="color:#ff5e5e;font-weight:700;"' : "";
-//       html += `<td ${style}>${displayVal ?? ""}</td>`;
-//     }
-//     const totalConK = fila.totalHTML
-//       ? pintarKRoja(fila.totalHTML + (fila.karma ? ",k" : ""))
-//       : (fila.karma ? "<span style='color:red;font-weight:700;'>k</span>" : "");
-
-//     html += `<td>${totalConK}</td></tr>`;
-
-//   });
-
-//   // fila inferior K columnas
-//   html += `<tr><td></td>`;
-//   for (let j = 0; j < numCols; j++) {
-//     html += `<td>${columnasKarma[j] ? "<span style='color:red;font-weight:700;'>k</span>" : ""}</td>`;
-//   }
-//   html += `<td></td></tr>`;
-
-//   html += `
-//         </tbody>
-//       </table>
-//     </div>
-//   `;
-
-//   let tablaDiv = $("tablaBaseKarma");
-//   if (!tablaDiv) {
-//     tablaDiv = document.createElement("div");
-//     tablaDiv.id = "tablaBaseKarma";
-//     const cardTitle = [...document.querySelectorAll(".card-title")]
-//       .find(el => el.textContent.includes("Numerología Base"));
-//     if (cardTitle) cardTitle.parentElement.appendChild(tablaDiv);
-//     else document.body.appendChild(tablaDiv);
-//   }
-//   tablaDiv.innerHTML = html;
-// }
 
 
 /* ==========================
@@ -1491,6 +1618,58 @@ function calcularBasePipeline(ctxBase) {
   };
 }
 
+function calcularResultado12Karmas(tablaData, resultsBase) {
+  const karmasSet = new Set();
+
+  // 1) Karmas horizontales (pares en filas: Esencia, Imagen, Mundo)
+  if (tablaData.infoH) {
+    tablaData.infoH.forEach(filaInfo => {
+      filaInfo.forEach(info => {
+        if (info?.karma && KARMAS_POSIBLES.includes(info.karma)) {
+          karmasSet.add(info.karma);
+        }
+      });
+    });
+  }
+
+  // 2) Karmas verticales (por columna)
+  if (tablaData.infoV) {
+    tablaData.infoV.forEach(filaInfo => {
+      filaInfo.forEach(info => {
+        if (info?.karma && KARMAS_POSIBLES.includes(info.karma)) {
+          karmasSet.add(info.karma);
+        }
+      });
+    });
+  }
+
+  // 3) Totales de fila con karma (Esencia, Imagen, Sendero del Mundo)
+  if (tablaData.filas) {
+    tablaData.filas.forEach(fila => {
+      if (fila.karmaTotalInfo) {
+        const m = fila.karmaTotalInfo.match(/Karma\s+(\d+)/);
+        if (m) {
+          const k = parseInt(m[1], 10);
+          if (KARMAS_POSIBLES.includes(k)) karmasSet.add(k);
+        }
+      }
+    });
+  }
+
+  // 4) Sendero Natal (usa el valor crudo que guardes para 13/14/16/19)
+  if (resultsBase.senderoNatal?.crudo && KARMAS_POSIBLES.includes(resultsBase.senderoNatal.crudo)) {
+    karmasSet.add(resultsBase.senderoNatal.crudo);
+  }
+
+  // 5) Número Potencial (igual: valor crudo, sin reducir)
+  if (resultsBase.potencial?.crudo && KARMAS_POSIBLES.includes(resultsBase.potencial.crudo)) {
+    karmasSet.add(resultsBase.potencial.crudo);
+  }
+
+  // Devolvemos array ordenado y sin repetidos
+  return Array.from(karmasSet).sort((a, b) => a - b);
+}
+
 /**
  * Renderiza los resultados Base en el DOM.
  * Aquí se pintan inputs + spans detalle + tabla base kármica.
@@ -1575,6 +1754,10 @@ function renderBaseResults(resultsBase, ctxBase) {
   // Tabla Base Kármica
   const tablaData = buildTablaBaseKarmicaData(ctxBase, resultsBase);
   renderTablaBaseKarmica(tablaData);
+  // Resultado 12: Karmas
+  const karmasR12 = calcularResultado12Karmas(tablaData, resultsBase);
+  // Ej: "13, 14, 19"
+  setValue("karmas", karmasR12.join(", ") || "—");
 }
 
 
