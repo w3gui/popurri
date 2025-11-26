@@ -1906,6 +1906,40 @@ function calcDigitoEdad(ctxP) {
 }
 
 /**
+ * Calcula las edades al inicio y al final del año calendario seleccionado
+ * en el campo "Año en curso".
+ *
+ * - inicio: edad al 1 de enero de anioEnCurso
+ * - fin:    edad al 31 de diciembre de anioEnCurso
+ *
+ * Solo se usa para mostrar el texto "35 + 36 →" del Dígito de Edad.
+ *
+ * @param {object} ctxP
+ * @returns {{inicio:number, fin:number} | null}
+ */
+function calcularEdadesCalendario(ctxP) {
+  if (
+    !Number.isFinite(ctxP.anioEnCurso) ||
+    !ctxP.anioNac || !ctxP.mesNac || !ctxP.diaNac
+  ) {
+    return null;
+  }
+
+  const fechaInicio = new Date(ctxP.anioEnCurso, 0, 1);   // 1 de enero
+  const fechaFin    = new Date(ctxP.anioEnCurso, 11, 31); // 31 de diciembre
+
+  const edadInicio = calcularEdadEnFecha(
+    ctxP.anioNac, ctxP.mesNac, ctxP.diaNac, fechaInicio
+  );
+  const edadFin = calcularEdadEnFecha(
+    ctxP.anioNac, ctxP.mesNac, ctxP.diaNac, fechaFin
+  );
+
+  return { inicio: edadInicio, fin: edadFin };
+}
+
+
+/**
  * Resultado 22: Mes Personal.
  * Regla:
  * - mes actual real (Date.now) reducido
@@ -2138,10 +2172,30 @@ function renderPredictivaResults(resultsP, ctxP) {
   setValue("anioPersonal", ap.valor ?? "");
 
   // 20 Dígito de Edad
+  /*
   setValue("digitoEdad", resultsP.digitoEdad.valor ?? "");
   if (resultsP.digitoEdad.edades) {
     setText("digitoEdadTexto", `20. Dígito de Edad ${resultsP.digitoEdad.edades.antes} + ${resultsP.digitoEdad.edades.despues} →`);
   }
+  */
+  // 20 Dígito de Edad
+  setValue("digitoEdad", resultsP.digitoEdad.valor ?? "");
+
+  // Texto "35 + 36 →" basado en AÑO CALENDARIO (1/1 y 31/12 del año en curso)
+  const edadesCal = calcularEdadesCalendario(ctxP);
+  if (edadesCal) {
+    setText(
+      "digitoEdadTexto",
+      `20. Dígito de Edad ${edadesCal.inicio} + ${edadesCal.fin} →`
+    );
+  } else if (resultsP.digitoEdad.edades) {
+    // Fallback por si faltan datos: comportamiento antiguo
+    setText(
+      "digitoEdadTexto",
+      `20. Dígito de Edad ${resultsP.digitoEdad.edades.antes} + ${resultsP.digitoEdad.edades.despues} →`
+    );
+  }
+
 
   // 21 Edad Actual
   setValue("edadActual", resultsP.edadActual.valor ?? "");
