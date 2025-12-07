@@ -835,6 +835,70 @@ function calcEtapas(ctx, resultsParciales) {
   return { rMes, rDia, rAnio, e1, e2, e3, e4, edades };
 }
 
+function calcDesafios(ctx, edadesBase) {
+  if (!ctx.fechaNacimientoISO || !ctx.mesNac || !ctx.diaNac || !ctx.anioNac) {
+    const edadesFallback = edadesBase || {
+      inicio1: 0, fin1: 36,
+      inicio2: 37, inicio3: 46, inicio4: 55
+    };
+    return {
+      rMes: 0, rDia: 0, rAnio: 0,
+      d1: 0, d2: 0, d3: 0, d4: 0,
+      edades: edadesFallback
+    };
+  }
+
+  // Estos SON LOS QUE MOSTRAMOS (pueden ser 11 / 22)
+  const rMes = reducirFechaSN(ctx.mesNac);
+  const rDia = reducirFechaSN(ctx.diaNac);
+  const rAnio = reducirFechaSN(sumarDigitos(ctx.anioNac));
+
+  // 🔸 Conversión ESPECIAL SOLO PARA DESAFÍOS:
+  // 11 → 2, 22 → 4, el resto se deja igual.
+  const toDesafioValor = (x) => {
+    if (x === 11) return 2;
+    if (x === 22) return 4;
+    return x;
+  };
+
+  // Valores internos que se usan en las RESTAS
+  const m = toDesafioValor(rMes);
+  const d = toDesafioValor(rDia);
+  const a = toDesafioValor(rAnio);
+
+  const abs = (a, b) => Math.abs(a - b);
+
+  // EXACTAMENTE IGUAL A ETAPAS PERO CON RESTAS,
+  // usando m, d, a ya corregidos (11→2, 22→4).
+  const d1Raw = abs(m, d);      // |mes - día|
+  const d2Raw = abs(d, a);      // |día - año|
+  const d3Raw = abs(d1Raw, d2Raw);
+  const d4Raw = abs(m, a);      // |mes - año|
+
+  // Por si acaso en algún caso extremo apareciera 11 o 22,
+  // volvemos a aplicar la misma regla al resultado final:
+  const reducirDesafio = (x) => {
+    x = Number(x);
+    if (!Number.isFinite(x)) return 0;
+    if (x === 11) return 2;
+    if (x === 22) return 4;
+    return reducirNumero(x);
+  };
+
+  const d1 = reducirDesafio(d1Raw);
+  const d2 = reducirDesafio(d2Raw);
+  const d3 = reducirDesafio(d3Raw);
+  const d4 = reducirDesafio(d4Raw);
+
+  const edades = edadesBase || {
+    inicio1: 0, fin1: 36,
+    inicio2: 37, inicio3: 46, inicio4: 55
+  };
+
+  return { rMes, rDia, rAnio, d1, d2, d3, d4, edades };
+}
+
+
 function calcCicloVida(ctx, fechaReferencia = new Date()) {
   if (!ctx.fechaNacimientoISO || !ctx.anioNac || !ctx.mesNac || !ctx.diaNac) {
     return { valor: null, edad: null, tramo: null };
@@ -985,6 +1049,7 @@ function calcularBasePipeline(ctxBase) {
   const letraLeccion = calcLetraLeccion(ctxBase);
   const regaloDivino = calcRegaloDivino(ctxBase);
   const etapas = calcEtapas(ctxBase, { senderoNatal: senderoNatal.valor });
+  const desafios = calcDesafios(ctxBase, etapas.edades);
   const cicloVida = calcCicloVida(ctxBase);
   const karmas = calcKarmas(ctxBase, {
     esenciaCrudo: esenciaIntima.crudo,
@@ -1009,6 +1074,7 @@ function calcularBasePipeline(ctxBase) {
     letraLeccion,
     regaloDivino,
     etapas,
+    desafios,
     cicloVida,
     karmas,
     leccionesKarmicas,
@@ -1118,6 +1184,28 @@ function renderBaseResults(resultsBase, ctxBase) {
   setText("etapa2_der", et.e2);
   setText("etapa3", et.e3);
   setText("etapa4", et.e4);
+  
+  // 10.1 Desafíos
+  const df = resultsBase.desafios;
+  if (df) {
+    // fila 1 (mes/día/año reducidos, igual que etapas)
+    setText("desafio1_izq", df.rMes);
+    setText("desafio1_centro", df.rDia);
+    setText("desafio1_der", df.rAnio);
+
+    // fila 2–4 con las restas
+    setText("desafio2_izq", df.d1);
+    setText("desafio2_der", df.d2);
+    setText("desafio3", df.d3);
+    setText("desafio4", df.d4);
+
+    const edadesD = df.edades;
+    setText("desafioTexto1", `De ${edadesD.inicio1} a ${edadesD.fin1} - ${df.d1}`);
+    setText("desafioTexto2", `De ${edadesD.inicio2} a ${edadesD.inicio3 - 1} - ${df.d2}`);
+    setText("desafioTexto3", `De ${edadesD.inicio3} a ${edadesD.inicio4 - 1} - ${df.d3}`);
+    setText("desafioTexto4", `Desde ${edadesD.inicio4} en adelante - ${df.d4}`);
+  }
+  console.log("DEBUG desafios:", resultsBase.desafios);
 
   const edades = et.edades;
   setText("etapaTexto1", `De ${edades.inicio1} a ${edades.fin1} - ${et.e1}`);
@@ -1252,16 +1340,18 @@ function calcEdadActual(ctxP) {
 // - edadDespues = edadActual + 1
 // - reducirNumero(edadAntes) + reducirNumero(edadDespues)
 // - reducir final preservando maestros.
+// NUEVA VERSIÓN (usa las dos edades del mismo año calendario)
 function calcDigitoEdad(ctxP) {
-  const edadActual = ctxP.edadActual;
-  if (!Number.isFinite(edadActual)) {
+  const edadesCal = calcularEdadesCalendario(ctxP);
+  if (!edadesCal) {
     return { valor: null, crudo: null, edades: { antes: 0, despues: 0 } };
   }
-  const antes = edadActual;
-  const despues = edadActual + 1;
-  const suma = reducirNumero(antes) + reducirNumero(despues);
-  const valor = esMaestro(suma) ? suma : reducirNumero(suma);
-  return { valor, crudo: suma, edades: { antes, despues } };
+  const antes = edadesCal.inicio;   // edad al 1 de enero del año en curso
+  const despues = edadesCal.fin;    // edad al 31 de diciembre del año en curso
+  // Reducimos cada edad y luego sumamos
+  const sumaReducidas = reducirNumero(antes) + reducirNumero(despues);
+  const valor = esMaestro(sumaReducidas) ? sumaReducidas : reducirNumero(sumaReducidas);
+  return { valor, crudo: sumaReducidas, edades: { antes, despues } };
 }
 
 // Calcula las edades al inicio y al final del año calendario seleccionado
@@ -1476,16 +1566,17 @@ function renderPredictivaResults(resultsP, ctxP) {
 
   // 19 Año Personal
   const ap = resultsP.anioPersonal;
-  setValue("labelanioPersonal", ap.partes ? `${ap.partes.dia} + ${ap.partes.mes} + ${ap.partes.anio}` : "");
   setValue("anioPersonal", ap.valor ?? "");
 
-  // 20 Dígito de Edad
-  /*
-  setValue("digitoEdad", resultsP.digitoEdad.valor ?? "");
-  if (resultsP.digitoEdad.edades) {
-    setText("digitoEdadTexto", `20. Dígito de Edad ${resultsP.digitoEdad.edades.antes} + ${resultsP.digitoEdad.edades.despues} →`);
+  if (ap.partes) {
+    // mostramos la cuenta en el label
+    setText(
+      "anioPersonalTexto",
+      `19. Año Personal ${ap.partes.dia} + ${ap.partes.mes} + ${ap.partes.anio} →`
+    );
+  } else {
+    setText("anioPersonalTexto", "19. Año Personal");
   }
-  */
   // 20 Dígito de Edad
   setValue("digitoEdad", resultsP.digitoEdad.valor ?? "");
 
@@ -1759,8 +1850,11 @@ function limpiarInputsYResultados() {
 
   // etapas
   ["etapa1_izq","etapa1_centro","etapa1_der","etapa2_izq","etapa2_der","etapa3","etapa4",
-   "etapaTexto1","etapaTexto2","etapaTexto3","etapaTexto4"]
-    .forEach(id => setText(id, ""));
+   "etapaTexto1","etapaTexto2","etapaTexto3","etapaTexto4",
+   "desafio1_izq","desafio1_centro","desafio1_der","desafio2_izq","desafio2_der","desafio3","desafio4",
+   "desafioTexto1","desafioTexto2","desafioTexto3","desafioTexto4"
+  ].forEach(id => setText(id, ""));
+
 
   // cuatrimestres headers + resultados 24-31
   ["cuatri1-header","cuatri2-header","cuatri3-header"].forEach(id => setText(id, ""));

@@ -217,6 +217,57 @@
       </div>
     </section>
 
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+          <h5 class="card-title mb-0">10.1 Desafios</h5>
+        </div>
+        <div class="row g-4">
+          <div class="col-md-6">
+            <div class="etapas-grid">
+              <div class="etapa fila fila-1">
+                <span id="desafio1_izq">-</span>
+                <span id="desafio1_centro">-</span>
+                <span id="desafio1_der">-</span>
+              </div>
+              <div class="etapa fila fila-2">
+                <span id="desafio2_izq">-</span>
+                <span id="desafio2_der">-</span>
+              </div>
+              <div class="etapa fila fila-3">
+                <span id="desafio3">-</span>
+              </div>
+              <div class="etapa fila fila-4">
+                <span id="desafio4">-</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="list-group list-group-transparent">
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>Primer desafío</strong>
+                <span id="desafioTexto1">De ___ a ___ - ___</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>Segundo desafío</strong>
+                <span id="desafioTexto2">De ___ a ___ - ___</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>Tercer desafío</strong>
+                <span id="desafioTexto3">De ___ a ___ - ___</span>
+              </div>
+              <div class="list-group-item d-flex justify-content-between">
+                <strong>Cuarto desafío</strong>
+                <span id="desafioTexto4">Desde ___ en adelante - ___</span>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- GRID: Karma (12–13) y Doble Dígito (14–18) -->
     <section class="grid-cards mb-4">
       <div class="card glass">
@@ -277,13 +328,8 @@
 
         <div class="row g-3">
           <div class="col-md-4">
-            <label for="anioPersonal" class="form-label">19. Año Personal</label>
-            <div class="inline-duo">
-              <input type="text" id="labelanioPersonal" readonly />
-              <input type="text" id="anioPersonal" class="form-control-neo" readonly />
-              <!-- <input type="text" id="labelanioPersonal" class="form-control text-center mb-1" style="background: transparent; border: 1px dashed rgba(255,255,255,0.3); font-style: italic;" readonly /> -->
-              <!-- <input type="text" id="anioPersonal" class="form-control form-control-neo text-center  fw-bold" readonly /> -->
-          </div>
+            <label id="anioPersonalTexto" for="anioPersonal" class="form-label">19. Año Personal</label>
+            <input type="text" id="anioPersonal" class="form-control form-control-neo text-center" readonly />
           </div>
           <div class="col-md-4">
             <label id="digitoEdadTexto" for="digitoEdad" class="form-label">20. Dígito de Edad</label>
