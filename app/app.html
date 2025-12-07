@@ -116,217 +116,203 @@
       </div>
     </section>
 
-    <!-- CARD: Datos personales -->
-    <!-- TODO: BORRAR SI SE APRUEBAN LAS DOS COLUMNAS
     <section class="card glass mb-4">
       <div class="card-body">
-        <h5 class="card-title mb-3">Datos personales</h5>
         <div class="row g-3">
-          <div class="col-md-4">
-            <label for="nombres" class="form-label">Nombres</label>
-            <input type="text" class="form-control form-control-neo" id="nombres" />
+          <div class="col-md-4 col-lg-4">
+            <label class="form-label">8. Letra L.</label>
+            <input type="text" id="letraLeccion" class="form-control form-control-neo text-center" readonly />
           </div>
-          <div class="col-md-4">
-            <label for="apellidos" class="form-label">Apellidos</label>
-            <input type="text" class="form-control form-control-neo" id="apellidos" />
+          <div class="col-md-4 col-lg-4">
+            <label class="form-label">9. Regalo Divino</label>
+            <input type="text" id="regaloDivino" class="form-control form-control-neo text-center" readonly />
           </div>
-          <div class="col-md-4">
-            <label for="fechaNacimiento" class="form-label">Fecha de Nacimiento</label>
-            <input type="date" class="form-control form-control-neo" id="fechaNacimiento" />
+          <div class="col-md-4 col-lg-4">
+            <label class="form-label">12. Karmas</label>
+            <input type="text" id="karmas" class="form-control form-control-neo text-center" readonly />
           </div>
+          
         </div>
       </div>
     </section>
-    -->
-
-    <!-- GRID: Resultados 1–9 -->
-    <section class="grid-cards mb-4">
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">8. Letra L.</h6>
-          <input type="text" id="letraLeccion" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">9. Regalo Divino</h6>
-          <input type="text" id="regaloDivino" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">12. Karmas</h6>
-          <input type="text" id="karmas" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-    </section>
-
-    <!-- CARD: Etapas (10–11) -->
-    <section class="card glass mb-4">
-      <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
-          <h5 class="card-title mb-0">10. Etapas</h5>
-        </div>
-        <div class="row g-4">
-          <div class="col-md-6">
-            <div class="etapas-grid">
-              <div class="etapa fila fila-1">
-                <span id="etapa1_izq">-</span>
-                <span id="etapa1_centro">-</span>
-                <span id="etapa1_der">-</span>
-              </div>
-              <div class="etapa fila fila-2">
-                <span id="etapa2_izq">-</span>
-                <span id="etapa2_der">-</span>
-              </div>
-              <div class="etapa fila fila-3">
-                <span id="etapa3">-</span>
-              </div>
-              <div class="etapa fila fila-4">
-                <span id="etapa4">-</span>
-              </div>
+    
+    <!-- ETAPAS Y DESAFÍOS -->
+    <section class="row g-4 mb-4">
+      <!-- Columna izquierda: Etapas (10–11) -->
+      <div class="col-lg-6">
+        <div class="card glass h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+              <h5 class="card-title mb-0">10. Etapas</h5>
+              <section class="card glass mb-4">
             </div>
-          </div>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="etapas-grid">
+                  <div class="etapa fila fila-1">
+                    <span id="etapa1_izq">-</span>
+                    <span id="etapa1_centro">-</span>
+                    <span id="etapa1_der">-</span>
+                  </div>
+                  <div class="etapa fila fila-2">
+                    <span id="etapa2_izq">-</span>
+                    <span id="etapa2_der">-</span>
+                  </div>
+                  <div class="etapa fila fila-3">
+                    <span id="etapa3">-</span>
+                  </div>
+                  <div class="etapa fila fila-4">
+                    <span id="etapa4">-</span>
+                  </div>
+                </div>
+              </div>
 
-          <div class="col-md-6">
-            <div class="list-group list-group-transparent">
-              <div class="list-group-item d-flex justify-content-between">
-                <strong>Primera etapa</strong>
-                <span id="etapaTexto1">De ___ a ___ - ___</span>
-              </div>
-              <div class="list-group-item d-flex justify-content-between">
-                <strong>Segunda etapa</strong>
-                <span id="etapaTexto2">De ___ a ___ - ___</span>
-              </div>
-              <div class="list-group-item d-flex justify-content-between">
-                <strong>Tercera etapa</strong>
-                <span id="etapaTexto3">De ___ a ___ - ___</span>
-              </div>
-              <div class="list-group-item d-flex justify-content-between">
-                <strong>Cuarta etapa</strong>
-                <span id="etapaTexto4">Desde ___ en adelante - ___</span>
-              </div>
-            </div>
+              <div class="col-md-6">
+                <div class="list-group list-group-transparent">
+                  <div class="list-group-item d-flex justify-content-between">
+                    <strong>Primera etapa</strong>
+                    <span id="etapaTexto1">De ___ a ___ - ___</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <strong>Segunda etapa</strong>
+                    <span id="etapaTexto2">De ___ a ___ - ___</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <strong>Tercera etapa</strong>
+                    <span id="etapaTexto3">De ___ a ___ - ___</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <strong>Cuarta etapa</strong>
+                    <span id="etapaTexto4">Desde ___ en adelante - ___</span>
+                  </div>
+                </div>
 
-            <div class="mt-3">
-              <label for="cicloVida" class="form-label">11. Ciclo de Vida</label>
-              <input type="text" id="cicloVida" class="form-control form-control-neo text-center w-auto" readonly />
+                <div class="mt-3">
+                  <label for="cicloVida" class="form-label">11. Ciclo de Vida</label>
+                  <input type="text" id="cicloVida"
+                         class="form-control form-control-neo text-center w-auto" readonly />
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </section>
 
-    <section class="card glass mb-4">
-      <div class="card-body">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
-          <h5 class="card-title mb-0">10.1 Desafios</h5>
-        </div>
-        <div class="row g-4">
-          <div class="col-md-6">
-            <div class="etapas-grid">
-              <div class="etapa fila fila-1">
-                <span id="desafio1_izq">-</span>
-                <span id="desafio1_centro">-</span>
-                <span id="desafio1_der">-</span>
+      <!-- Columna derecha: Desafíos -->
+      <div class="col-lg-6">
+        <div class="card glass h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
+              <h5 class="card-title mb-0">10.1 Desafíos</h5>
+            </div>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="etapas-grid">
+                  <div class="etapa fila fila-1">
+                    <span id="desafio1_izq">-</span>
+                    <span id="desafio1_centro">-</span>
+                    <span id="desafio1_der">-</span>
+                  </div>
+                  <div class="etapa fila fila-2">
+                    <span id="desafio2_izq">-</span>
+                    <span id="desafio2_der">-</span>
+                  </div>
+                  <div class="etapa fila fila-3">
+                    <span id="desafio3">-</span>
+                  </div>
+                  <div class="etapa fila fila-4">
+                    <span id="desafio4">-</span>
+                  </div>
+                </div>
               </div>
-              <div class="etapa fila fila-2">
-                <span id="desafio2_izq">-</span>
-                <span id="desafio2_der">-</span>
-              </div>
-              <div class="etapa fila fila-3">
-                <span id="desafio3">-</span>
-              </div>
-              <div class="etapa fila fila-4">
-                <span id="desafio4">-</span>
+
+              <div class="col-md-6">
+                <div class="list-group list-group-transparent">
+                  <div class="list-group-item d-flex justify-content-between">
+                    <strong>Primer desafío</strong>
+                    <span id="desafioTexto1">De ___ a ___ - ___</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <strong>Segundo desafío</strong>
+                    <span id="desafioTexto2">De ___ a ___ - ___</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <strong>Tercer desafío</strong>
+                    <span id="desafioTexto3">De ___ a ___ - ___</span>
+                  </div>
+                  <div class="list-group-item d-flex justify-content-between">
+                    <strong>Cuarto desafío</strong>
+                    <span id="desafioTexto4">Desde ___ en adelante - ___</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="col-md-6">
-            <div class="list-group list-group-transparent">
-              <div class="list-group-item d-flex justify-content-between">
-                <strong>Primer desafío</strong>
-                <span id="desafioTexto1">De ___ a ___ - ___</span>
-              </div>
-              <div class="list-group-item d-flex justify-content-between">
-                <strong>Segundo desafío</strong>
-                <span id="desafioTexto2">De ___ a ___ - ___</span>
-              </div>
-              <div class="list-group-item d-flex justify-content-between">
-                <strong>Tercer desafío</strong>
-                <span id="desafioTexto3">De ___ a ___ - ___</span>
-              </div>
-              <div class="list-group-item d-flex justify-content-between">
-                <strong>Cuarto desafío</strong>
-                <span id="desafioTexto4">Desde ___ en adelante - ___</span>
-              </div>
-            </div>
-            
           </div>
         </div>
       </div>
     </section>
 
     <!-- GRID: Karma (12–13) y Doble Dígito (14–18) -->
-    <section class="grid-cards mb-4">
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">13. Lecciones Kármicas</h6>
-          <input type="text" id="leccionesKarmicas" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">14. DD Vocales</h6>
-          <input type="text" id="dobleDigitoVocales" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">15. DD Consonantes</h6>
-          <input type="text" id="dobleDigitoConsonantes" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">16. DD Total</h6>
-          <input type="text" id="dobleDigitoTotal" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">17. DD Fecha Suma</h6>
-          <input type="text" id="dobleDigitoFecha" class="form-control form-control-neo text-center" readonly />
-        </div>
-      </div>
-      <div class="card glass">
-        <div class="card-body">
-          <h6 class="card-subtitle mb-2">18. Arcano Natal</h6>
-          <input type="text" id="ArcanoNatal" class="form-control form-control-neo text-center" readonly />
+    <!-- KARMAS + DOBLE DÍGITO EN UNA SOLA CARD -->
+    <section class="card glass mb-4">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Karmas y Doble Dígito</h5>
+        <div class="row g-3">
+          <div class="col-md-4 col-lg-2">
+            <label class="form-label">13. Lecciones Kármicas</label>
+            <input type="text" id="leccionesKarmicas"
+                   class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4 col-lg-2">
+            <label class="form-label">14. DD Vocales</label>
+            <input type="text" id="dobleDigitoVocales"
+                   class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4 col-lg-2">
+            <label class="form-label">15. DD Consonantes</label>
+            <input type="text" id="dobleDigitoConsonantes"
+                   class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4 col-lg-2">
+            <label class="form-label">16. DD Total</label>
+            <input type="text" id="dobleDigitoTotal"
+                   class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4 col-lg-2">
+            <label class="form-label">17. DD Fecha Suma</label>
+            <input type="text" id="dobleDigitoFecha"
+                   class="form-control form-control-neo text-center" readonly />
+          </div>
+          <div class="col-md-4 col-lg-2">
+            <label class="form-label">18. Arcano Natal</label>
+            <input type="text" id="ArcanoNatal"
+                   class="form-control form-control-neo text-center" readonly />
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- CARD: Predictiva (19–23) -->
-    <section class="card glass mb-4">
+    <!-- PREDICTIVA + CUATRIMESTRES JUNTOS -->
+    <section class="card glass mb-5">
       <div class="card-body">
+        <!-- Cabecera Predictiva -->
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3">
-          <h5 class="card-title mb-0">Numerología Predictiva</h5>
+          <h5 class="card-title mb-0">Numerología Predictiva y Cuatrimestres</h5>
           <div class="d-flex align-items-center gap-2">
             <label for="anioEnCurso" class="form-label mb-0">Año en curso</label>
-            <input type="date" class="form-control form-control-neo w-auto text-center" id="anioEnCurso" value="2025-09-14" />
+            <input type="date" class="form-control form-control-neo w-auto text-center"
+                   id="anioEnCurso" value="2025-09-14" />
             <script>
-                 const hoyLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
-                 document.getElementById("anioEnCurso").value = hoyLocal;
+              const hoyLocal = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+                                 .toISOString().split('T')[0];
+              document.getElementById("anioEnCurso").value = hoyLocal;
             </script>
             <button class="btn btn-gradient" id="btnCalcularPredictiva" title="Recalcular 19–31">Calcular</button>
-            <!-- <button class="btn btn-outline-light btn-pill" id="btnCalcularPredictiva" title="Recalcular 19–31">Calcular</button> -->
           </div>
         </div>
 
-        <div class="row g-3">
+        <!-- Bloque Predictiva 19–23 -->
+        <div class="row g-3 mb-3">
           <div class="col-md-4">
             <label id="anioPersonalTexto" for="anioPersonal" class="form-label">19. Año Personal</label>
             <input type="text" id="anioPersonal" class="form-control form-control-neo text-center" readonly />
@@ -348,14 +334,11 @@
             <input type="text" id="transitoLetra" class="form-control form-control-neo text-center" readonly />
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- CARD: Cuatrimestres (24–31) -->
-    <section class="card glass mb-5">
-      
-      <div class="card-body">
-        <h5 class="card-title mb-3">Cuatrimestres</h5>
+        <hr class="my-3" />
+
+        <!-- Cuatrimestres 24–31 -->
+        <h6 class="card-subtitle mb-2">Cuatrimestres (24–31)</h6>
         <div class="table-responsive rounded overflow-hidden">
           <table class="table table-glass table-borderless text-center align-middle mb-0">
             <thead>
@@ -385,7 +368,6 @@
         </div>
       </div>
     </section>
-    
     
     <!-- ABRACADABRA (32) -->
     <!-- ======== ABRACADABRA PIRAMIDAL ======== -->

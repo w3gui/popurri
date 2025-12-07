@@ -578,3 +578,110 @@
   font-weight: 800;
 }
 
+/* ============================================
+   VISTA COMPACTA TIPO TABLERO
+   ============================================ */
+
+/* Ocupamos todo el alto de la ventana */
+html, body {
+  height: 100%;
+}
+
+/* Texto general más pequeño */
+.app-body {
+  font-size: 0.80rem;
+}
+
+/* En pantallas grandes lo hacemos un poco más pequeño aún
+   para que quepa más contenido en la vista */
+@media (min-width: 1200px) {
+  .app-body {
+    font-size: 0.75rem;
+  }
+}
+
+/* HEADER: que la barra ocupe todo el ancho */
+.hero .container {
+  max-width: 100% !important;
+  padding: 10px 16px;
+}
+
+/* CONTENIDO: usar todo el ancho disponible y menos padding vertical */
+.content {
+  padding: 8px 8px 28px;
+}
+
+/* Bootstrap hace que .container tenga max-width fijo;
+   aquí lo rompemos para que sea 100% y se parezca más a la app amarilla */
+.content.container {
+  max-width: 100% !important;
+}
+
+/* Títulos más compactos */
+h1 {
+  font-size: 1.6rem;
+}
+h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+.card-title {
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+}
+.card-subtitle {
+  font-size: 0.85rem;
+}
+
+/* Tarjetas más apretadas */
+.card.glass .card-body {
+  padding: 8px 10px;
+}
+
+/* Reducimos márgenes verticales entre bloques
+   (sobrescribimos las clases mb-4 / mb-5 dentro del main) */
+.content .mb-4 {
+  margin-bottom: 0.8rem !important;
+}
+.content .mb-5 {
+  margin-bottom: 1rem !important;
+}
+
+/* Inputs más bajos y con texto más pequeño */
+.form-control-neo {
+  padding: 6px 8px;
+  font-size: 0.80rem;
+}
+
+/* Bloques de Etapas / Desafíos más compactos */
+.etapa {
+  gap: 18px;
+  font-size: 1rem;       /* antes ~1.35rem */
+  padding: 6px 10px;     /* menos padding */
+}
+.fila-1 {
+  padding-inline: 18px;  /* antes 38px */
+}
+.fila-2 {
+  gap: 30px;             /* antes 56px */
+}
+
+/* Tablas más pequeñas (Cuatrimestres, tabla base, etc.) */
+.table-glass thead th {
+  font-size: 0.80rem;
+  padding: 4px 6px;
+}
+.table-glass tbody td {
+  padding: 6px 6px;      /* antes 18px 10px */
+  font-size: 0.80rem;
+}
+
+/* ABRACADABRA todavía más compacto para que no se “coma” toda la altura */
+#abracadabra th,
+#abracadabra td {
+  font-size: 0.75rem;     /* antes 0.9rem */
+  padding: 0.18rem 0.22rem;
+}
+
+/* En pantallas grandes, las celdas internas del abracadabra
+   ya están controladas arriba, no hace falta tocarlas más */
