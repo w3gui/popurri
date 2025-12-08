@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <!-- Estilos personalizados -->
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -14,14 +16,16 @@
   <!-- HERO HEADER -->
   <header class="hero">
     <div class="container d-flex align-items-center justify-content-between">
-      <div class="hero-title">
-        <h1 class="mb-1">Numerología Profunda</h1>
-        <p class="mb-0">Calculadora integral • Esencia, Senderos y Predictiva</p>
+      <div class="hero-title  d-flex align-items-center gap-3">
+        <img src="assets/AD-ORIGEN-.ico" alt="AD Origen - Numerología Profunda" class="hero-logo">
+        <div>
+          <h1 class="mb-1">Numerología Profunda</h1>
+          <p class="mb-0">AD Origen ®</p>
+        </div>
       </div>
 
       <div class="hero-actions d-flex align-items-center gap-2">
         <button class="btn btn-gradient" id="btnCalcular" title="Calcular todo">Calcular</button>
-        <!-- <button class="btn btn-outline-light btn-pill" id="btnCalcularPredictiva" title="Recalcular Predictiva (19–31)">Predictiva</button> -->
         <button class="btn btn-glass modo-toggle" id="toggleModo" title="Cambiar tema">
           <span class="toggle-emoji" aria-hidden="true">🌞</span>
         </button>
@@ -46,6 +50,8 @@
         <p id="loginError" class="text-danger mt-3 mb-0" style="display:none;">Acceso denegado</p>
       </div>
     </div>
+    
+    
     <h2 class="mb-4 text-center">Calculadora</h2>
     <!-- BLOQUE INICIAL DIVIDIDO EN DOS COLUMNAS -->
     <section class="row g-4 mb-4 align-items-start">
@@ -68,17 +74,20 @@
                 <input type="date" class="form-control form-control-neo" id="fechaNacimiento" />
               </div>
             </div>
-            <div class="col-md-6">
-              <label class="form-label">6. Ciclo de Letras</label>
-              <input type="text" id="cicloLetras" class="form-control form-control-neo text-center" readonly />
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">7. Clave Personal</label>
-              <input type="text" id="clavePersonal" class="form-control form-control-neo text-center" readonly />
+            <div class="row g-3">
+              <div class="col-md-2 col-lg-6">
+                <label class="form-label">6. Ciclo de Letras</label>
+                <input type="text" id="cicloLetras" class="form-control form-control-neo text-center" readonly />
+              </div>
+              <div class="col-md-6 col-lg-6">
+                <label class="form-label">7. Clave Personal</label>
+                <input type="text" id="clavePersonal" class="form-control form-control-neo text-center" readonly />
+              </div>
             </div>
           </div>
         </div>
       </div>
+
       <!-- COLUMNA DERECHA: RESULTADOS BÁSICOS -->
       <div class="col-lg-6">
         <div class="card glass h-100">
@@ -86,19 +95,14 @@
             <h5 class="card-title mb-3 text-center">Numerología Base</h5>
             <!-- Tabla Base dinámica -->
             <div id="tablaBaseKarma"></div>
-            <!-- KARMA -->
-            <div class="col-12 mb-2">
-              <label class="form-label">Karma</label>
-            </div>
-
             <!-- RESULTADOS 4 y 5 debajo de la tabla -->
             <div class="row g-3">
-              <div class="col-md-12">
+              <div class="col-md-6 col-lg-6">
                 <label class="form-label">4. Sendero Natal</label>
                 <!-- <div id="senderoNatalDetalle" class="form-control form-control-neo text-center w-auto d-block mt-1" role="textbox" aria-readonly="true"></div> -->
                 <div id="senderoNatalDetalle" class="form-control form-control-neo form-control-static text-center mt-1" role="textbox" aria-readonly="true"></div>
               </div>
-              <div class="col-md-12">
+              <div class="col-md-6 col-lg-6">
                 <label class="form-label">5. Potencial</label>
                 <!-- <div id="potencialDetalle" class="form-control form-control-neo text-center w-auto d-block mt-1" role="textbox" aria-readonly="true"></div> -->
                  <div id="potencialDetalle" class="form-control form-control-neo form-control-static text-center mt-1" role="textbox" aria-readonly="true"></div>
@@ -424,15 +428,15 @@
                   <tr class="align-middle">
                     <th class="text-end pe-4"></th>
                     <th></th>
-                    <th><span id="abracadabra_top_1" class="text-danger small fw-semibold">hola</span></th><th></th>
-                    <th><span id="abracadabra_top_2" class="text-danger small fw-semibold">hola</span></th><th></th>
-                    <th><span id="abracadabra_top_3" class="text-danger small fw-semibold">hola</span></th><th></th>
-                    <th><span id="abracadabra_top_4" class="text-danger small fw-semibold">hola</span></th><th></th>
-                    <th><span id="abracadabra_top_5" class="text-danger small fw-semibold">hola</span></th><th></th>
-                    <th><span id="abracadabra_top_6" class="text-danger small fw-semibold">hola</span></th><th></th>
-                    <th><span id="abracadabra_top_7" class="text-danger small fw-semibold">hola</span></th><th></th>
-                    <th><span id="abracadabra_top_8" class="text-danger small fw-semibold">hola</span></th><th></th>
-                    <th><span id="abracadabra_top_9" class="text-danger small fw-semibold">hola</span></th>
+                    <th><span id="abracadabra_top_1" class="text-danger small fw-semibold">|</span></th><th></th>
+                    <th><span id="abracadabra_top_2" class="text-danger small fw-semibold">|</span></th><th></th>
+                    <th><span id="abracadabra_top_3" class="text-danger small fw-semibold">|</span></th><th></th>
+                    <th><span id="abracadabra_top_4" class="text-danger small fw-semibold">|</span></th><th></th>
+                    <th><span id="abracadabra_top_5" class="text-danger small fw-semibold">|</span></th><th></th>
+                    <th><span id="abracadabra_top_6" class="text-danger small fw-semibold">|</span></th><th></th>
+                    <th><span id="abracadabra_top_7" class="text-danger small fw-semibold">|</span></th><th></th>
+                    <th><span id="abracadabra_top_8" class="text-danger small fw-semibold">|</span></th><th></th>
+                    <th><span id="abracadabra_top_9" class="text-danger small fw-semibold">|</span></th>
                     <th class="ps-4"></th>
                   </tr>
 
@@ -580,12 +584,33 @@
 
   <!-- FOOTER -->
   <footer class="footer">
-    <div class="container d-flex justify-content-between flex-wrap gap-2">
-      <small><a href="derechos.html" class="footer-link">Derechos reservados</a></small>
-      <small>Martín Noé</small>
-      <small>© 2025 • WWM</small>
+    <div class="container d-flex justify-content-between flex-wrap align-items-center gap-2">
+      <div class="d-flex flex-wrap align-items-center gap-3">
+        <small><a href="derechos.html" class="footer-link">Derechos reservados</a></small>
+        <small>Numerología Profunda</small>
+        <small>© 2025</small>
+      </div>
+
+      <div class="d-flex align-items-center gap-3 footer-social">
+        <a href="https://www.youtube.com/@adorigen8795"
+          class="footer-link"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="YouTube Numerología Profunda">
+          <i class="bi bi-youtube"></i>
+        </a>
+        <a href="https://www.instagram.com/ad_origen/?igsh=aHBxaXNjYnNqcGRv#"
+          class="footer-link"
+          target="_blank" rel="noopener noreferrer"
+          aria-label="Instagram Numerología Profunda">
+          <i class="bi bi-instagram"></i>
+        </a>
+        <a href="https://www.facebook.com/share/17mFtUes5Q/" class="footer-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook Numerología Profunda">
+          <i class="bi bi-facebook"></i>
+        </a>
+      </div>
     </div>
   </footer>
+
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

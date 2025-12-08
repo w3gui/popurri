@@ -75,6 +75,16 @@
   color: var(--muted);
 }
 
+.hero-logo {
+  /* transform: scale(0.3); */
+  transform-origin: left center;
+  height: 66px;       /* o 24px / 32px según te guste */
+  width: auto;        /* mantiene proporción */
+  display: block;     /* evita espacios raros de inline-img */
+}
+
+
+
 /* ====== Buttons ====== */
 .btn-gradient {
   border: 0;
@@ -221,6 +231,7 @@
   margin-top: auto;
   padding: 16px 0 24px;
   color: var(--muted);
+  font-size: 0.85rem;
   border-top: 1px solid var(--card-border);
   background: linear-gradient(0deg, rgba(0,0,0,0.08), transparent);
 }
@@ -256,20 +267,6 @@
   color: #f8f9fa !important;
 }
 
-/* Botón flotante modo oscuro */
-.modo-toggle {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    z-index: 1000;
-    font-size: 1.4rem;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 .footer a.footer-link {
   color: var(--muted);
   text-decoration: none;
@@ -280,16 +277,25 @@
   border-bottom-color: var(--card-border);
 }
 
-/* ====== Toggle ====== */
-.modo-toggle {
-  position: fixed;
-  top: 15px; right: 15px;
-  z-index: 1000;
+.footer-social a {
   font-size: 1.4rem;
-  border-radius: 50%;
-  width: 50px; height: 50px;
-  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
 }
+
+.footer-social a:hover {
+  color: #ff5e5e;
+}
+
+/* ====== Toggle ====== */
+/* Botón modo oscuro dentro del header */
+.hero-actions .modo-toggle {
+  position: static;        /* que respete el flex del header */
+  width: auto;
+  height: auto;
+  border-radius: 14px;     /* como un botón normal */
+  padding: 8px 12px;
+}
+
 .modo-toggle .toggle-emoji {
   display: inline-block; font-size: 1.15rem; transform: translateY(1px);
 }
@@ -685,3 +691,6 @@ h2 {
 
 /* En pantallas grandes, las celdas internas del abracadabra
    ya están controladas arriba, no hace falta tocarlas más */
+
+
+  
