@@ -33,6 +33,56 @@ const MESES_NOMBRE = [
 ];
 
 /* HELPERS COMPARTIDOS  --- DOM utils --- */
+
+// --- Reducciones específicas para Abracadabra (línea roja) ---
+function reducirMesAbracadabra(mes) {
+  mes = Number(mes);
+  if (!Number.isFinite(mes) || mes <= 0) return null;
+  // Noviembre mantiene 11
+  if (mes === 11) return 11;
+  // resto se reduce a un dígito
+  return reducirEstrictoADigito(mes);
+}
+
+function reducirDiaAbracadabra(dia) {
+  dia = Number(dia);
+  if (!Number.isFinite(dia) || dia <= 0) return null;
+  // usamos la misma regla que Sendero Natal:
+  // 11 y 22 se respetan, 29 se trata como 11, el resto se reduce
+  if (dia === 11 || dia === 22) return dia;
+  return reducirFechaSN(dia);
+  // return reducirEstrictoADigito(dia);
+}
+
+function reducirAnioAbracadabra(anio) {
+  anio = Number(anio);
+  if (!Number.isFinite(anio) || anio <= 0) return null;
+  const suma = sumarDigitos(anio); // p.ej. 1990 -> 19 | 1984 -> 22
+  if (suma === 11 || suma === 22) return suma;
+  return reducirEstrictoADigito(suma); // 19 -> 1
+}
+
+/**
+ * Formatea la cadena de la línea roja:
+ * - si suma < 10  -> "3"
+ * - si suma >=10 y 1 sola reducción -> "13/4"
+ * - si requiere dos pasos (ej 28 -> 10 -> 1) -> "28/10/1"
+ */
+function formatearAbracadabraTop(suma) {
+  if (!Number.isFinite(suma)) return "";
+  if (suma < 10) return String(suma);
+
+  const primera = sumarDigitos(suma);
+  if (primera < 10) {
+    return `${suma}/${primera}`;
+  }
+  const segunda = sumarDigitos(primera);
+  if (segunda === primera) {
+    return `${suma}/${primera}`;
+  }
+  return `${suma}/${primera}/${segunda}`;
+}
+
 function $(id) {
   return document.getElementById(id);
 }
@@ -1643,12 +1693,55 @@ function getAbracadabraInputsFromDOM() {
  * - nombreCompletoSinEspacios (solo letras)
  * - primeras9 (slice + padEnd)
  */
-function buildAbracadabraContext(inputs) {
-  const nombreCompleto = obtenerNombreCompletoNormalizado(inputs.nombresRaw, inputs.apellidosRaw);
+function buildAbracadabraContext(inputs, ctxBase) {
+  const nombreCompleto = ctxBase ? ctxBase.nombreCompleto: obtenerNombreCompletoNormalizado(inputs.nombresRaw, inputs.apellidosRaw);
   const nombreCompletoSinEspacios = soloLetras(nombreCompleto);
   const primeras9 = nombreCompletoSinEspacios.slice(0, 9).padEnd(9, " ");
-  return { nombreCompletoSinEspacios, primeras9 };
+  return {nombreCompletoSinEspacios, primeras9,
+    anioNac: ctxBase?.anioNac ?? null,
+    mesNac: ctxBase?.mesNac ?? null,
+    diaNac: ctxBase?.diaNac ?? null
+  };
 }
+/**
+ * Calcula la línea roja sobre las letras:
+ *
+ * - letras 1,2,3: valorLetra + mesNacimientoReducido (excepto noviembre=11)
+ * - letras 4,5,6: valorLetra + díaNacimiento reducido a un dígito (salvo 11/22)
+ * - letras 7,8,9: valorLetra + añoNacimiento reducido (suma dígitos; si 11/22 se respeta)
+ *
+ * Devuelve array de 9 strings ya formateados ("13/4", "3", "28/10/1", etc).
+ */
+
+function calcAbracadabraTopRow(ctxA, fila1) {
+  const { mesNac, diaNac, anioNac } = ctxA;
+  const top = Array(9).fill("");
+
+  if (!mesNac || !diaNac || !anioNac) return top;
+
+  const mesR  = reducirMesAbracadabra(mesNac);         // ej: 5
+  const diaR  = reducirDiaAbracadabra(diaNac);         // ej: 29 -> 11
+  const anioR = reducirAnioAbracadabra(anioNac);       // ej: 1990 -> 1
+
+  for (let i = 0; i < 9; i++) {
+    const base = Number(fila1[i] ?? 0);
+    let suma = null;
+
+    if (i <= 2) {          // letras 1–3 → mes
+      suma = base + mesR;
+    } else if (i <= 5) {   // letras 4–6 → día
+      suma = base + diaR;
+    } else {               // letras 7–9 → año
+      suma = base + anioR;
+    }
+
+    top[i] = formatearAbracadabraTop(suma);
+  }
+
+  return top;
+}
+
+
 
 
 // --- Cálculos ---
@@ -1705,9 +1798,10 @@ function calcAbracadabraSumas(filas) {
  */
 function calcularAbracadabraPipeline(ctxA) {
   const { fila1, letras } = calcAbracadabraFila1(ctxA);
+  const topRow = calcAbracadabraTopRow(ctxA, fila1);
   const filas = calcAbracadabraFilas2a9(fila1);
   const sumas = calcAbracadabraSumas(filas);
-  return { letrasFila1: letras, filas, sumas };
+  return { letrasFila1: letras, filas, sumas, topRow };
 }
 
 /**
@@ -1718,25 +1812,36 @@ function calcularAbracadabraPipeline(ctxA) {
  * - sumas rX_sum
  */
 function renderAbracadabraResults(resultsA, ctxA) {
-  const { letrasFila1, filas, sumas } = resultsA;
+  const { letrasFila1, filas, sumas, topRow } = resultsA;
 
-  // Fila 1 letras + valores
+  // Fila 1: letras + valores + línea roja
   for (let i = 0; i < 9; i++) {
-    setText(`abracadabra_nombre_${i + 1}`, letrasFila1[i] === " " ? "" : letrasFila1[i]);
-    setText(`r1c${i + 1}_abracadabra_valor_${i + 1}`, filas[0][i] ?? "");
+    setText(
+      `abracadabra_nombre_${i + 1}`,
+      letrasFila1[i] === " " ? "" : letrasFila1[i]
+    );
+    setText(
+      `r1c${i + 1}_abracadabra_valor_${i + 1}`,
+      filas[0]?.[i] ?? ""
+    );
+    // línea roja superior (13/4, 28/10/1, etc.)
+    setText(
+      `abracadabra_top_${i + 1}`,
+      topRow?.[i] ?? ""
+    );
   }
 
-  // Filas 2..9 valores
+  // Filas 2..9 de la pirámide
   for (let f = 2; f <= 9; f++) {
-    const fila = filas[f - 1];
+    const fila = filas[f - 1] || [];
     for (let c = 0; c < fila.length; c++) {
       setText(`r${f}c${c + 1}`, fila[c] ?? "");
     }
   }
 
-  // Sumas rX_sum
+  // Sumas de cada fila (r1_sum .. r9_sum)
   for (let i = 0; i < sumas.length; i++) {
-    setText(`r${i + 1}_sum`, sumas[i]);
+    setText(`r${i + 1}_sum`, sumas[i] ?? "");
   }
 }
 
@@ -1870,6 +1975,7 @@ function limpiarInputsYResultados() {
   for (let i = 1; i <= 9; i++) {
     setText(`abracadabra_nombre_${i}`, "");
     setText(`r1c${i}_abracadabra_valor_${i}`, "");
+    setText(`abracadabra_top_${i}`, "");
     setText(`r${i}_sum`, "");
   }
   for (let f = 2; f <= 9; f++) {
@@ -2020,7 +2126,7 @@ function mainCalcularTodo() {
   }
 
   const inputsA = getAbracadabraInputsFromDOM();
-  const ctxA = buildAbracadabraContext(inputsA);
+  const ctxA = buildAbracadabraContext(inputsA, ctxBase);
   const resultsA = calcularAbracadabraPipeline(ctxA);
   renderAbracadabraResults(resultsA, ctxA);
 }
