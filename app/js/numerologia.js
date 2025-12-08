@@ -450,8 +450,23 @@ function buildTablaBaseKarmicaData(ctxBase, resultsBase) {
   const { karmasH, infoH } = detectarKarmasHorizontales(filas, numCols);
   const { karmasV, columnasKarma, infoV, columnasInfo } = detectarKarmasVerticales(filas, numCols);
   detectarKarmaEnTotalesFila(filas);
+  const totalesFila = {
+    esencia: totalEsenciaCrudoFila,
+    imagen: totalImagenCrudoFila,
+    mundo: totalMundoCrudoFila
+  };
 
-  return { palabrasTotales, filas, karmasH, karmasV, columnasKarma, infoH, infoV, columnasInfo };
+  return {
+    palabrasTotales,
+    filas,
+    karmasH,
+    karmasV,
+    columnasKarma,
+    infoH,
+    infoV,
+    columnasInfo,
+    totalesFila
+  };
 }
 
 
@@ -1185,6 +1200,16 @@ function calcularResultado12Karmas(tablaData, resultsBase) {
   // Devolvemos array ordenado y sin repetidos
   return Array.from(karmasSet).sort((a, b) => a - b);
 }
+function calcTendenciaDestino(tablaData) {
+  if (!tablaData || !tablaData.totalesFila) return null;
+
+  const { esencia, imagen } = tablaData.totalesFila;
+
+  if (!Number.isFinite(esencia) || !Number.isFinite(imagen)) return null;
+
+  // Suma cruda de los totales de Esencia Íntima e Imagen de la tabla kármica
+  return esencia + imagen;
+}
 
 // Renderiza los resultados Base en el DOM.
 // Aquí se pintan inputs + spans detalle + tabla base kármica.
@@ -1291,6 +1316,10 @@ function renderBaseResults(resultsBase, ctxBase) {
   const karmasR12 = calcularResultado12Karmas(tablaData, resultsBase);
   // Ej: "13, 14, 19"
   setValue("karmas", karmasR12.join(", ") || "—");
+  // Resultado Tendencia del Destino = total Esencia + total Imagen (tabla kármica)
+  const tendenciaDestino = calcTendenciaDestino(tablaData);
+  setValue("TendenciaDestino", tendenciaDestino ?? "");
+
 }
 
 
@@ -1945,7 +1974,9 @@ function limpiarInputsYResultados() {
     "dobleDigitoVocales","dobleDigitoConsonantes","dobleDigitoTotal",
     "dobleDigitoFecha","ArcanoNatal",
     "labelanioPersonal","anioPersonal","digitoEdad","edadActual",
-    "mesPersonal","transitoLetra"
+    "mesPersonal","transitoLetra",
+    "TendenciaDestino"
+
   ];
   idsInputs.forEach(id => setValue(id, ""));
 
