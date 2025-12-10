@@ -2041,6 +2041,7 @@ const USUARIOS_PERMITIDOS = [
  * - engancha listener al botón Entrar
  * - engancha listener a Logout
  */
+/*
 function initLogin() {
   const overlay = $("login-overlay");
   const btnLogin = $("btnLogin");
@@ -2053,7 +2054,67 @@ function initLogin() {
   btnLogin.addEventListener("click", handleLoginSubmit);
   $("btnLogout")?.addEventListener("click", handleLogout);
 }
+*/
+function initLogin() {
+  const overlay = $("login-overlay");
+  const btnLogin = $("btnLogin");
+  if (!overlay || !btnLogin) return;
 
+  // Escuchamos cambios de sesión en Firebase
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      // Usuario logueado → ocultar overlay
+      overlay.style.display = "none";
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+    } else {
+      // Sin usuario → mostrar overlay
+      overlay.style.display = "flex";
+      overlay.style.opacity = "1";
+      overlay.style.pointerEvents = "auto";
+    }
+  });
+
+  btnLogin.addEventListener("click", handleLoginSubmit);
+  $("btnLogout")?.addEventListener("click", handleLogout);
+}
+
+function handleLoginSubmit() {
+  const overlay = $("login-overlay");
+  const inputEmail = $("loginEmail");
+  const inputPassword = $("loginPassword");
+  const loginError = $("loginError");
+
+  if (!overlay || !inputEmail || !inputPassword || !loginError) return;
+
+  const email = inputEmail.value.trim().toLowerCase();
+  const password = inputPassword.value.trim();
+
+  if (!email || !password) {
+    loginError.textContent = "Completa ambos campos";
+    loginError.style.display = "block";
+    return;
+  }
+
+  // Login con Firebase usando email + contraseña
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then((cred) => {
+      // OK: ocultamos mensaje de error y animamos salida del overlay
+      loginError.style.display = "none";
+
+      overlay.style.transition = "opacity 0.6s ease";
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 600);
+    })
+    .catch((error) => {
+      console.error("Error de login:", error);
+      loginError.textContent = "Acceso denegado";
+      loginError.style.display = "block";
+    });
+}
 /**
  * Maneja submit de login:
  * - valida campos
@@ -2062,6 +2123,8 @@ function initLogin() {
  * - anima y oculta overlay
  * - muestra mensajes de error
  */
+
+/*
 function handleLoginSubmit() {
   const overlay = $("login-overlay");
   const inputEmail = $("loginEmail");
@@ -2099,17 +2162,65 @@ function handleLoginSubmit() {
     loginError.style.display = "block";
   }
 }
+*/
+function handleLoginSubmit() {
+  const overlay = $("login-overlay");
+  const inputEmail = $("loginEmail");
+  const inputPassword = $("loginPassword");
+  const loginError = $("loginError");
+
+  if (!overlay || !inputEmail || !inputPassword || !loginError) return;
+
+  const email = inputEmail.value.trim().toLowerCase();
+  const password = inputPassword.value.trim();
+
+  if (!email || !password) {
+    loginError.textContent = "Completa ambos campos";
+    loginError.style.display = "block";
+    return;
+  }
+
+  // Login con Firebase usando email + contraseña
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then((cred) => {
+      // OK: ocultamos mensaje de error y animamos salida del overlay
+      loginError.style.display = "none";
+
+      overlay.style.transition = "opacity 0.6s ease";
+      overlay.style.opacity = "0";
+      overlay.style.pointerEvents = "none";
+      setTimeout(() => {
+        overlay.style.display = "none";
+      }, 600);
+    })
+    .catch((error) => {
+      console.error("Error de login:", error);
+      loginError.textContent = "Acceso denegado";
+      loginError.style.display = "block";
+    });
+}
 
 /**
  * Maneja logout:
  * - borra usuarioAutenticado
  * - recarga página
  */
+/*
 function handleLogout() {
   localStorage.removeItem("usuarioAutenticado");
   location.reload();
 }
-
+*/
+function handleLogout() {
+  firebase.auth().signOut()
+    .then(() => {
+      // Al cerrar sesión, recargamos la página: volverá a aparecer el overlay
+      location.reload();
+    })
+    .catch((err) => {
+      console.error("Error al cerrar sesión:", err);
+    });
+}
 
 /* ==========================
    9) TEMA OSCURO / UI
